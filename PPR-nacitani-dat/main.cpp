@@ -9,14 +9,18 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 #include "Node.h"
+#include "WLengthMatrix.h"
 
 using namespace std;
 
 unsigned int    nodeCount = 0;
 Node**          nodes = NULL;
-ifstream        file;
+ifstream        inputFile;
+WLengthMatrix*  wMatrix = NULL;
+int             lowerLimit = 0;
 
 bool fileExist (const char * fileName) {
     // Existence souboru se overi pokusem o otevreni souboru.
@@ -39,25 +43,61 @@ void openFile(char* fileName, ifstream& file) {
     }
 }
 void openFile(char* fileName, ofstream& file) {
-    file.open(fileName, ios::binary | ios::out);
+    file.open(fileName, ios::out);
     if (!file.is_open()) {
         throw "Nepodarilo se otevrit/vytvorit vystupni soubor.";
     }
 }
 
-void nactiParametry(int argc, char** argv) {
+void getParameters(int argc, char** argv) {
     if (argc != 2) {
         throw "Zadejte nazev souboru reprezentujiciho graf.";
     }
     if (!fileExist(argv[1])) {
         throw "Soubor neexistuje.";
     }
-    openFile(argv[1], file);
+    openFile(argv[1], inputFile);
 }
 
-void deleteNodes() {
-    for (int i=0; i<nodeCount; i++) {
-        delete nodes[i];
+int readCountOfNodes(ifstream& file) {
+    char znak;
+    int n = 0;
+    file.get(znak);                
+    // nacteni poctu uzlu grafu    
+    while (file.good() && (znak != '\n')) {                
+        n = n*10 + (short)znak - 48;     // odecteni nuly '0' = 48
+        //cout << (short)znak << " " << n << endl;        
+        file.get(znak);
+    }
+    return n;    
+}
+
+void readNodesFromFile(ifstream& file, Node** nodes, WLengthMatrix* wMatrix, unsigned int nodeCount) {
+    // nacteni a zpracovani matice sousednosti ze souboru
+    char znak;
+    for (int i=0; i < nodeCount; i++) {            
+        for (int j=0; j < nodeCount; j++) { // nacteni jednoho radku
+            file.get(znak);                
+            if (file.fail()) {
+                throw "Chyba cteni vstupniho souboru.";
+            }                
+            if (znak != '0' && znak != '1') {
+                throw "Neplatny obsah vstupniho souboru.";
+            }
+            if (znak == '1') {      // pridani souseda
+                nodes[i]->addNeighbour(nodes[j]);   // pridani souseda primo uzlu
+                wMatrix->addNeighbour(i, j);        // vyznaceni souseda v matici w-delek
+            }                                
+        }            
+        file.get(znak);
+        if (znak != '\n') { // kontrola jestli jsem na konci radku
+            throw "Neplatny obsah vstupniho souboru.";
+        }
+    }                
+
+    // Pokud je nastaven failbit a není konec souboru, došlo k chybě souboru.
+    if (inputFile.fail() && !inputFile.eof()) {
+        throw "Chyba cteni vstupniho souboru";                        
     }
 }
 
@@ -73,77 +113,90 @@ void printNodes() {
     cout << endl;
 }
 
+/**
+ * Vygenerovani graficke podoby grafu pomoci nastroje neato (graphviz). Nejprve
+ * je vygenerovan soubor "graf.dot", ktery je vstupem programu neato, ktery
+ * vygeneruje obrazek (.eps) grafu).
+ * Na Windows asi nebude fungovat !!!
+ * @param nodes pole vsech uzlu
+ * @param nodeCount pocet  uzlu grafu
+ */
+bool generateGraphVizualization(Node** nodes, int nodeCount) {
+    ofstream graph;         
+    openFile((char*)"graf.dot", graph); // vytvoreni souboru s definici grafu
+    graph << "graph graf {\n";    
+    // definice sousednosti uzlu:    1 -- 2 -- 3;
+    for (int i=0; i < nodeCount; i++) {        
+        for (int j=0; j < nodes[i]->getCountOfNeighbours(); j++) {
+            if (i >= nodes[i]->getNeighbour(j)->getId()) {
+                graph << "\t" << i << " -- " << nodes[i]->getNeighbour(j)->getId() << ";\n";
+            }            
+        }                        
+    }          
+    graph << "}\n";
+    graph.close();    
+    // vykresleni grafu
+    int result = system("neato -Teps graf.dot -o graf.eps");
+    if (result != 0) {
+        throw "Generovani vizualizace grafu nedopadlo uspesne.";
+    }
+}
+
+void cleanUp() {
+    if (inputFile.is_open()) {
+        inputFile.close();    
+    }
+    if (wMatrix != NULL) {
+        delete wMatrix;    
+    }
+    if (nodes != NULL) {
+        for (int i=0; i<nodeCount; i++) {
+            delete nodes[i];
+        }
+    }    
+}
+
 /*
  * 
  */
 int main(int argc, char** argv) {    
+    
     try {
-        nactiParametry(argc, argv);
+        getParameters(argc, argv);                       
+                
+        // zjisteni poctu uzlu grafu - prvni radek vstupniho souboru
+        nodeCount = readCountOfNodes(inputFile);       
+        cout << "Pocet uzlu grafu: " << nodeCount << endl;
+        
+        // alokace a priprava pole uzlu a matice w-delek
+        wMatrix = new WLengthMatrix(nodeCount);
+        nodes = new Node*[nodeCount];
+        for (int i=0; i < nodeCount; i++) {
+            nodes[i] = new Node(i);
+        }    
+        
+        // nacteni uzlu z matice sousednosti ve vstupnim souboru
+        readNodesFromFile(inputFile, nodes, wMatrix, nodeCount);        
+        printNodes();
+        
+        // vypocet prumeru grafu a dolni meze dilatace
+        wMatrix->aplyFloydWarshall();
+        lowerLimit = wMatrix->getLowerLimit();
+        cout << "Prumer grafu: " << wMatrix->getDiameter() << endl;
+        delete wMatrix;       
+        wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
+
+        // vizualizace grafu - na Windows asi nebude fungovat
+        // generateGraphVizualization(nodes, nodeCount);
     }
     catch (const char * e) {
-        cout << "Chyba: " << e << endl;
+        cout << "Chyba: " << e << endl;                
+        cleanUp(); // uklid
         return 1;
-    }
-    
-    char znak;
-    file.get(znak);
-    cout << "Obsah souboru:" << endl;
-    int n = 0;
-    // nacteni poctu uzlu grafu    
-    while (file.good() && (znak != '\n')) {                
-        n = n*10 + (short)znak - 48;     // odecteni nuly '0' = 48
-        // cout << (short)znak << " " << n << endl;        
-        file.get(znak);
-    }
-    cout << "Pocet uzlu grafu: " << n << endl;        
-    
-    nodeCount = n;       
-    nodes = new Node*[nodeCount];
-    for (int i=0; i < nodeCount; i++) {
-        nodes[i] = new Node(i);
-    }    
-    
-    try {
-        for (int i=0; i < nodeCount; i++) {            
-            for (int j=0; j < nodeCount; j++) {
-                file.get(znak);
-                //cout << (short)znak << endl;
-                if (!file.good()) {
-                    throw "Chyba cteni souboru";
-                }                
-                if (znak != '0' && znak != '1') {
-                    throw "Neplatny obsah souboru. 1";
-                }
-                if (znak == '1') {      // pridani souseda
-                    nodes[i]->addNeighbour(nodes[j]);
-                }                                
-            }
-            // kontrola jestli jsem na konci radku
-            file.get(znak);
-            if (znak != '\n') {
-                throw "Neplatny obsah souboru. 2";
-            }
-        }
-    }
-    catch (const char* e) {
-        cout << "Chyba: " << e << endl;
-        //TODO tady se musi uklidit pamet
-        deleteNodes();
-        return 1;
-    }
-    
-    printNodes();
+    }   
     
     
-    // Pokud je nastaven failbit a není konec souboru, došlo k chybě souboru.
-    if (file.fail() && !file.eof()) {
-        cout << "Chyba: Chyba pri cteni souboru.";
-        file.close();
-        return 1;
-    }
-    
-    file.close();    
-    deleteNodes();
+    cleanUp();  // uklid
     cout << "OK" << endl;             
     return 0;
 }
