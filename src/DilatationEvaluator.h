@@ -14,14 +14,16 @@
 class DilatationEvaluator : public Evaluator {
 public:
     DilatationEvaluator(Permutation &perm, Node* nodes);
-    DilatationEvaluator(const DilatationEvaluator& orig);
     virtual ~DilatationEvaluator();
     int evaluate();
+    void setMinDilatation(int dil);
 private:
     Permutation &permutation;
     Node * nodes;
-    int currentMinMaxDilatation;
+    int currentMinDilatation;
 };
+
+
 
 #endif	/* DILATATIONEVALUATOR_H */
 
