@@ -11,5 +11,7 @@
 *.lai
 *.la
 *.a
-/PPR-nacitani-dat/build/
-/PPR-nacitani-dat/dist/
+
+# Netbeans project files
+Makefile
+nbproject/*
