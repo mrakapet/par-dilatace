@@ -14,21 +14,24 @@ PermutationStack::PermutationStack(int size) {
     this->length=size;
     this->permutation=new int[size];
     this->used=new bool[size];
-    this->level=0;
+    for (int i=0; i < size; i++) {
+        this->used[i] = false;
+    }
+    this->level=0;      // 0   
 }
 
 PermutationStack::PermutationStack(const PermutationStack& orig) {
     length=orig.length;
     permutation=new int[length];
     memcpy(permutation, orig.permutation, length);
-    used=new bool[length];
+    used=new bool[length];    
     memcpy(used,orig.used,length);
     level=orig.level;
 }
 
 PermutationStack::~PermutationStack() {
-    free(permutation);
-    free(used);
+    delete[] permutation;
+    delete[] used;
 }
 
 bool PermutationStack::add(int i){
@@ -42,7 +45,7 @@ bool PermutationStack::add(int i){
 
 int PermutationStack::getPosX(int x){
     if(x>=level)return -1;
-    return permutation[x-1];
+    return permutation[x];    // -1
 }
 
 int PermutationStack::getTop(){
@@ -57,5 +60,15 @@ bool PermutationStack::removeTop(){
 }
 
 int PermutationStack::getLevel(){
-    return level-1;
+    return level-1;     // -1
+}
+
+void PermutationStack::print(bool eol) {
+    cout << "Permutace (level=" << getLevel() << "): ";
+    for (int i=0; i < level; i++) {
+        cout << permutation[i] << " ";
+    }
+    if (eol) {
+        cout << endl;
+    }    
 }

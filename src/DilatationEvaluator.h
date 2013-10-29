@@ -9,17 +9,19 @@
 #define	DILATATIONEVALUATOR_H
 
 #include "Evaluator.h"
+#include "Permutation.h"
+#include "Node.h"
 
 
 class DilatationEvaluator : public Evaluator {
 public:
-    DilatationEvaluator(Permutation &perm, Node* nodes);
+    DilatationEvaluator(Permutation *perm, Node** nodes);
     virtual ~DilatationEvaluator();
     int evaluate();
     void setMinDilatation(int dil);
 private:
-    Permutation &permutation;
-    Node * nodes;
+    Permutation *permutation;
+    Node ** nodes;
     int currentMinDilatation;
 };
 

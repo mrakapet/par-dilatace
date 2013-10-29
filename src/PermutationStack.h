@@ -5,8 +5,10 @@
  * Created on October 14, 2013, 10:28 PM
  */
 
-#ifndef PERMUTATOR_H
-#define	PERMUTATOR_H
+#ifndef PERMUTATIONSTACK_H
+#define	PERMUTATIONSTACK_H
+
+#include <iostream>
 #include "Permutation.h"
 
 class PermutationStack: public Permutation{
@@ -20,6 +22,8 @@ public:
     int getPosX(int x);
     int getLevel();
     
+    void print(bool eol = true);    
+    
 private:
     int * permutation;
     bool * used;
@@ -29,5 +33,5 @@ private:
 
 };
 
-#endif	/* PERMUTATOR_H */
+#endif	/* PERMUTATORSTACK_H */
 

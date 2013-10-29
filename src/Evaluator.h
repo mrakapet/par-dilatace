@@ -7,7 +7,7 @@
 
 #ifndef EVALUATOR_H
 #define	EVALUATOR_H
-class Node;
+//class Node;
 
 class Evaluator {
 public:

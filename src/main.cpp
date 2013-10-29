@@ -10,17 +10,23 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <climits>
 
 #include "Node.h"
 #include "WLengthMatrix.h"
+#include "DilatationEvaluator.h"
+#include "PermutationStack.h"
 
 using namespace std;
-
-unsigned int    nodeCount = 0;
-Node**          nodes = NULL;
-ifstream        inputFile;
-WLengthMatrix*  wMatrix = NULL;
-int             lowerLimit = 0;
+  
+unsigned int            nodeCount = 0;
+Node**                  nodes = NULL;
+ifstream                inputFile;
+WLengthMatrix*          wMatrix = NULL;
+int                     lowerLimit = 0;
+PermutationStack*       permutation = NULL;
+DilatationEvaluator*    evaluator = NULL;
+int                     dilatation = INT_MAX;
 
 bool fileExist (const char * fileName) {
     // Existence souboru se overi pokusem o otevreni souboru.
@@ -154,6 +160,67 @@ void cleanUp() {
             delete nodes[i];
         }
     }    
+    if (permutation != NULL) {
+        delete permutation;
+    }
+    if (evaluator != NULL) {
+        delete evaluator;
+    }
+}
+
+/**
+ * Nacteni grafu ze souboru a priprava datovych struktur.
+ */
+void loadData() {
+    // zjisteni poctu uzlu grafu - prvni radek vstupniho souboru
+    nodeCount = readCountOfNodes(inputFile);       
+    cout << "Pocet uzlu grafu: " << nodeCount << endl;
+
+    // alokace a priprava pole uzlu a matice w-delek
+    wMatrix = new WLengthMatrix(nodeCount);
+    nodes = new Node*[nodeCount];
+    for (int i=0; i < nodeCount; i++) {
+        nodes[i] = new Node(i);
+    }    
+
+    // nacteni uzlu z matice sousednosti ve vstupnim souboru
+    readNodesFromFile(inputFile, nodes, wMatrix, nodeCount);        
+    printNodes();
+
+    // vypocet prumeru grafu a dolni meze dilatace
+    wMatrix->aplyFloydWarshall();
+    lowerLimit = wMatrix->getLowerLimit();
+    cout << "Prumer grafu: " << wMatrix->getDiameter() << endl;
+    cout << "Dolni mez dilatace: " << lowerLimit << endl;
+    delete wMatrix;       
+    wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
+
+    // vizualizace grafu - na Windows asi nebude fungovat
+    //generateGraphVizualization(nodes, nodeCount);
+}
+
+void generate() {
+    //permutation->print(false);
+    if (permutation->getLevel() > 0) {
+        int permDil = evaluator->evaluate();
+        //if (permutation->getLevel()==nodeCount-1) { cout << "   -> " << permDil; }
+        if (permDil > dilatation) {
+            //cout << " - blocked";
+            //cout << endl;
+            permutation->removeTop();
+            return;
+        }
+        if (permDil < dilatation && permDil >= lowerLimit && permutation->getLevel() == nodeCount-1) {
+            dilatation = permDil;
+        }                
+    }        
+    //cout << endl;    
+    for (int i=0; i<nodeCount; i++) {
+        if (permutation->add(i)) {
+            generate();
+        }
+    }
+    permutation->removeTop();
 }
 
 /*
@@ -162,32 +229,25 @@ void cleanUp() {
 int main(int argc, char** argv) {    
     
     try {
+        // nacteni dat
         getParameters(argc, argv);                       
+        loadData();
+        cout << endl;
+        
+        // vypocet dilatace
+        permutation = new PermutationStack(nodeCount);
+        evaluator = new DilatationEvaluator(permutation, nodes);
+        //evaluator->setMinDilatation(INT_MAX);
+//        for (int i=0; i < nodeCount; i++) {
+//            for (int j=0; j < nodeCount; j++) {
+//                permutation->add(j);  
+//                permutation->print();                          
+//                cout << "\t-> " << evaluator->evaluate() << endl;
+//                permutation->removeTop();
+//            }            
+//        }
+        generate();
                 
-        // zjisteni poctu uzlu grafu - prvni radek vstupniho souboru
-        nodeCount = readCountOfNodes(inputFile);       
-        cout << "Pocet uzlu grafu: " << nodeCount << endl;
-        
-        // alokace a priprava pole uzlu a matice w-delek
-        wMatrix = new WLengthMatrix(nodeCount);
-        nodes = new Node*[nodeCount];
-        for (int i=0; i < nodeCount; i++) {
-            nodes[i] = new Node(i);
-        }    
-        
-        // nacteni uzlu z matice sousednosti ve vstupnim souboru
-        readNodesFromFile(inputFile, nodes, wMatrix, nodeCount);        
-        printNodes();
-        
-        // vypocet prumeru grafu a dolni meze dilatace
-        wMatrix->aplyFloydWarshall();
-        lowerLimit = wMatrix->getLowerLimit();
-        cout << "Prumer grafu: " << wMatrix->getDiameter() << endl;
-        delete wMatrix;       
-        wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
-
-        // vizualizace grafu - na Windows asi nebude fungovat
-        // generateGraphVizualization(nodes, nodeCount);
     }
     catch (const char * e) {
         cout << "Chyba: " << e << endl;                
@@ -197,7 +257,7 @@ int main(int argc, char** argv) {
     
     
     cleanUp();  // uklid
-    cout << "OK" << endl;             
+    cout << "\nDilatace grafu je " << dilatation << "." << endl;
     return 0;
 }
 

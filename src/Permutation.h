@@ -5,8 +5,8 @@
  * Created on October 15, 2013, 11:41 AM
  */
 
-#ifndef PERMUTATIONSTACK_H
-#define	PERMUTATIONSTACK_H
+#ifndef PERMUTATOR_H
+#define	PERMUTATOR_H
 
 class Permutation {
 public:
@@ -17,5 +17,5 @@ public:
     virtual int getLevel()=0; //return index of top item;
 };
 
-#endif	/* PERMUTATIONSTACK_H */
+#endif	/* PERMUTATION_H */
 

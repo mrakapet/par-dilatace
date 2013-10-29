@@ -14,4 +14,7 @@
 
 # Netbeans project files
 Makefile
-nbproject/*
+/src/nbproject/
+/src/.dep.inc
+/src/build/
+/src/dist/

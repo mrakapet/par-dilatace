@@ -6,10 +6,9 @@
  */
 
 #include "DilatationEvaluator.h"
-#include "Permutation.h"
-#include "Node.h"
+#include <iostream>
 
-DilatationEvaluator::DilatationEvaluator(Permutation& perm, Node* nodes) {
+DilatationEvaluator::DilatationEvaluator(Permutation* perm, Node** nodes) {
     this->nodes=nodes;
     this->permutation=perm;
 }
@@ -19,19 +18,20 @@ DilatationEvaluator::~DilatationEvaluator() {
 
 int DilatationEvaluator::evaluate(){
     int maxDistance=0;
-    int actual=permutation.getLevel();
-    for (int i = 0; i < nodes[actual].getCountOfNeighbours(); i++) {
-        int neighbor = nodes[actual].getNeighbour(i)->getId();
+    int actual=permutation->getLevel(); // posledni pridany uzel do permutace
+    for (int i = 0; i < nodes[actual]->getCountOfNeighbours(); i++) {   // prochazeni sousedu aktualniho uzlu
+        int neighbor = nodes[actual]->getNeighbour(i)->getId();        
         if(neighbor>actual)continue;
-        int distance = permutation.getPosX(neighbor)-permutation.getTop();
-        if(distance < 0)distance*=-1;
+        int distance = permutation->getPosX(neighbor) - permutation->getTop();        
+        if(distance < 0)distance*=-1;         
+        //cout << "[" << actual << " - " << neighbor << " = " << distance << "]";
         if(maxDistance < distance){
             maxDistance=distance;
-            if(maxDistance>=currentMinDilatation)
-                return currentMinDilatation;
+            //if(maxDistance>=currentMinDilatation)
+            //    return currentMinDilatation;
         }
     }
-    currentMinDilatation=maxDistance;
+    //currentMinDilatation=maxDistance;
     return maxDistance;
 }
 
