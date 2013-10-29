@@ -21,6 +21,7 @@ public:
     bool removeTop();
     int getPosX(int x);
     int getLevel();
+    const int* getPerm(); 
     
     void print(bool eol = true);    
     

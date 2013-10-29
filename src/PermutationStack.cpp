@@ -72,3 +72,9 @@ void PermutationStack::print(bool eol) {
         cout << endl;
     }    
 }
+
+const int* PermutationStack::getPerm(){
+    int out[] = new int[length];
+    memcpy(out,permutation,length);
+    return out;
+}
