@@ -86,3 +86,10 @@ ostream& operator<<(ostream& os, PermutationStack* p) {
         cout << p->permutation[i] << " ";
     }
 }
+
+const int* PermutationStack::getPerm(){
+    int out[] = new int[length];
+    memcpy(out,permutation,length);
+    return out;
+}
+

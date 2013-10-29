@@ -24,6 +24,7 @@ public:
     int getPosX(int x);
     int getLevel();
     bool isEmpty();
+    const int* getPerm(); 
     
     void print(bool eol = true);  
     friend ostream& operator<<(ostream& os, PermutationStack* p);
