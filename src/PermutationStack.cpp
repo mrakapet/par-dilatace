@@ -63,6 +63,13 @@ int PermutationStack::getLevel(){
     return level-1;     // -1
 }
 
+bool PermutationStack::isEmpty() {
+    if (level == -1) {
+        return true;
+    }
+    return false;
+}
+
 void PermutationStack::print(bool eol) {
     cout << "Permutace (level=" << getLevel() << "): ";
     for (int i=0; i < level; i++) {
@@ -71,4 +78,11 @@ void PermutationStack::print(bool eol) {
     if (eol) {
         cout << endl;
     }    
+}
+
+ostream& operator<<(ostream& os, PermutationStack* p) {
+    os << "Permutace (level=" << p->getLevel() << "): ";
+    for (int i=0; i < p->level; i++) {
+        cout << p->permutation[i] << " ";
+    }
 }

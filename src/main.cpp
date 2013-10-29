@@ -196,10 +196,27 @@ void loadData() {
     wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
 
     // vizualizace grafu - na Windows asi nebude fungovat
-    //generateGraphVizualization(nodes, nodeCount);
+    generateGraphVizualization(nodes, nodeCount);
 }
 
 void generate() {
+    int permDil;
+    permutation->add(0);
+    while(permutation->getLevel() > -1) {
+        permutation->print(false);
+        permDil = evaluator->evaluate();
+        cout << "   -> " << permDil << endl;
+        if (permutation->getLevel() == nodeCount-1) {            
+            permutation->removeTop();
+        }
+        else {
+            int i = 0;
+            while(!permutation->add(i++)) {}    // vlozeni jednoho prvku do permutace            
+        }                
+    }
+}
+
+void generateRec() {
     //permutation->print(false);
     if (permutation->getLevel() > 0) {
         int permDil = evaluator->evaluate();
@@ -217,7 +234,7 @@ void generate() {
     //cout << endl;    
     for (int i=0; i<nodeCount; i++) {
         if (permutation->add(i)) {
-            generate();
+            generateRec();
         }
     }
     permutation->removeTop();
@@ -238,15 +255,7 @@ int main(int argc, char** argv) {
         permutation = new PermutationStack(nodeCount);
         evaluator = new DilatationEvaluator(permutation, nodes);
         //evaluator->setMinDilatation(INT_MAX);
-//        for (int i=0; i < nodeCount; i++) {
-//            for (int j=0; j < nodeCount; j++) {
-//                permutation->add(j);  
-//                permutation->print();                          
-//                cout << "\t-> " << evaluator->evaluate() << endl;
-//                permutation->removeTop();
-//            }            
-//        }
-        generate();
+        generateRec();
                 
     }
     catch (const char * e) {

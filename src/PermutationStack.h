@@ -11,6 +11,8 @@
 #include <iostream>
 #include "Permutation.h"
 
+using namespace std;
+
 class PermutationStack: public Permutation{
 public:
     PermutationStack(int size);
@@ -21,8 +23,10 @@ public:
     bool removeTop();
     int getPosX(int x);
     int getLevel();
+    bool isEmpty();
     
-    void print(bool eol = true);    
+    void print(bool eol = true);  
+    friend ostream& operator<<(ostream& os, PermutationStack* p);
     
 private:
     int * permutation;
