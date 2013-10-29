@@ -27,6 +27,7 @@ int                     lowerLimit = 0;
 PermutationStack*       permutation = NULL;
 DilatationEvaluator*    evaluator = NULL;
 int                     dilatation = INT_MAX;
+int*                    minPermutation = NULL;
 
 bool fileExist (const char * fileName) {
     // Existence souboru se overi pokusem o otevreni souboru.
@@ -160,11 +161,15 @@ void cleanUp() {
             delete nodes[i];
         }
     }    
+    delete [] nodes;
     if (permutation != NULL) {
         delete permutation;
     }
     if (evaluator != NULL) {
         delete evaluator;
+    }
+    if (minPermutation != NULL) {
+        delete [] minPermutation;
     }
 }
 
@@ -227,8 +232,13 @@ void generateRec() {
             permutation->removeTop();
             return;
         }
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->getLevel() == nodeCount-1) {
+        if (permDil < dilatation && permDil >= lowerLimit && permutation->getLevel() == nodeCount-1) {            
             dilatation = permDil;
+            if (minPermutation != NULL) {
+                delete [] minPermutation;
+                minPermutation = NULL;
+            }
+            minPermutation = permutation->getPerm();
         }                
     }        
     //cout << endl;    
@@ -238,6 +248,18 @@ void generateRec() {
         }
     }
     permutation->removeTop();
+}
+
+void printPermutation(int * perm,int size){
+    int* temp = new int[size];
+    for(int i = 0;i<size;i++){
+        temp[perm[i]]=i;
+    }
+    for (int i = 0; i < size; i++) {
+        cout<<temp[i]<<" ";
+    }
+    cout<<endl;
+    delete [] temp;
 }
 
 /*
@@ -264,9 +286,10 @@ int main(int argc, char** argv) {
         return 1;
     }   
     
-    
+        
+    cout << "\nDilatace grafu je " << dilatation << ":" << endl;
+    printPermutation(minPermutation, nodeCount);
     cleanUp();  // uklid
-    cout << "\nDilatace grafu je " << dilatation << "." << endl;
     return 0;
 }
 

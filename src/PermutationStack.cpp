@@ -87,9 +87,9 @@ ostream& operator<<(ostream& os, PermutationStack* p) {
     }
 }
 
-const int* PermutationStack::getPerm(){
-    int out[] = new int[length];
-    memcpy(out,permutation,length);
+int* PermutationStack::getPerm(){
+    int* out = new int[length];
+    memcpy(out,permutation,length * sizeof(int));    
     return out;
 }
 
