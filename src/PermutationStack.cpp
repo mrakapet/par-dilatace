@@ -64,20 +64,17 @@ int PermutationStack::getLevel(){
 }
 
 bool PermutationStack::isEmpty() {
-    if (level == -1) {
+    if (level <= 0) {
         return true;
     }
     return false;
 }
 
-void PermutationStack::print(bool eol) {
-    cout << "Permutace (level=" << getLevel() << "): ";
-    for (int i=0; i < level; i++) {
-        cout << permutation[i] << " ";
+bool PermutationStack::isFull() {
+    if (level >= length) {
+        return true;
     }
-    if (eol) {
-        cout << endl;
-    }    
+    return false;
 }
 
 ostream& operator<<(ostream& os, PermutationStack* p) {
@@ -85,11 +82,15 @@ ostream& operator<<(ostream& os, PermutationStack* p) {
     for (int i=0; i < p->level; i++) {
         cout << p->permutation[i] << " ";
     }
+    return os;
 }
 
 int* PermutationStack::getPerm(){
     int* out = new int[length];
-    memcpy(out,permutation,length * sizeof(int));    
+    //memcpy(out,permutation,length * sizeof(int));    
+    for (int i=0; i < length; i++) {
+        out[i] = permutation[i];
+    }
     return out;
 }
 

@@ -204,28 +204,66 @@ void loadData() {
     generateGraphVizualization(nodes, nodeCount);
 }
 
+
+void printPermutation(int * perm,int size){
+    //int* temp = new int[size];
+    //for(int i = 0;i<size;i++){
+    //    temp[perm[i]]=i;
+    //}
+    for (int i = 0; i < size; i++) {
+        //cout<<temp[i]<<" ";
+        cout << perm[i] << " ";
+    }
+    cout<<endl;
+    //delete [] temp;
+}
+
 void generate() {
-    int permDil;
+    int permDil, last;
+    bool added = false;
     permutation->add(0);
-    while(permutation->getLevel() > -1) {
-        permutation->print(false);
+    while(!permutation->isEmpty()) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
-        cout << "   -> " << permDil << endl;
-        if (permutation->getLevel() == nodeCount-1) {            
-            permutation->removeTop();
-        }
-        else {
+        cout << permutation;
+        cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
+        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {            
+            dilatation = permDil;
+            if (minPermutation != NULL) {
+                delete [] minPermutation;
+                //minPermutation = NULL;
+            }
+            minPermutation = permutation->getPerm();
+            cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
+            printPermutation(minPermutation, nodeCount);            
+        }    
+        if (!permutation->isFull() && permDil <= dilatation) {   // pokud mam volne pozice
             int i = 0;
-            while(!permutation->add(i++)) {}    // vlozeni jednoho prvku do permutace            
-        }                
+            while (!permutation->add(i) && i < nodeCount) {
+                i++;
+            }      // pridam jako dalsi znak 0-ty uzel            
+        }
+        else {  // pokud nemuzu pridavat -> musim splhat nahoru
+           added = false;
+           while (!added && !permutation->isEmpty()) {               
+               last = permutation->getTop() + 1;
+               permutation->removeTop();                   
+               while (!added && last < nodeCount) {
+                   if (permutation->add(last)) {
+                       added = true;                     
+                   }
+                   last++;
+               }
+           }
+        }                                
     }
 }
 
 void generateRec() {
-    //permutation->print(false);
+    cout << permutation;
+    cout << permutation << endl;
     if (permutation->getLevel() > 0) {
         int permDil = evaluator->evaluate();
-        //if (permutation->getLevel()==nodeCount-1) { cout << "   -> " << permDil; }
+        if (permutation->isFull()) { cout << "   -> " << permDil; }
         if (permDil > dilatation) {
             //cout << " - blocked";
             //cout << endl;
@@ -250,18 +288,6 @@ void generateRec() {
     permutation->removeTop();
 }
 
-void printPermutation(int * perm,int size){
-    int* temp = new int[size];
-    for(int i = 0;i<size;i++){
-        temp[perm[i]]=i;
-    }
-    for (int i = 0; i < size; i++) {
-        cout<<temp[i]<<" ";
-    }
-    cout<<endl;
-    delete [] temp;
-}
-
 /*
  * 
  */
@@ -277,7 +303,7 @@ int main(int argc, char** argv) {
         permutation = new PermutationStack(nodeCount);
         evaluator = new DilatationEvaluator(permutation, nodes);
         //evaluator->setMinDilatation(INT_MAX);
-        generateRec();
+        generate();
                 
     }
     catch (const char * e) {

@@ -24,6 +24,7 @@ public:
     int getPosX(int x);
     int getLevel();
     bool isEmpty();
+    bool isFull();
     int* getPerm(); 
     
     void print(bool eol = true);  
