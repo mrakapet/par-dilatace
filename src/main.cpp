@@ -258,6 +258,56 @@ void generate() {
     }
 }
 
+/**
+ * Metoda provede generovani vsech permutaci od soucasne permutace vcetne do
+ * posledni zadane permutace exkluzivne.
+ * Posledni permutace se pozna tak, ze se v ni na zadane pozici (indexu) nachazi
+ * zadana hodnota. Jinymi slovy se zarazime pred vstupem do zadane vetve stromu
+ * stavoveho prostoru.
+ * pr: generatePart(2,1)        -> posledni permutace: _ _ 1 _ ...
+ * @param lastIndex pozice hranicni hodnoty v permutaci
+ * @param lastValue hranicni hodnota
+ */
+void generatePart(int lastIndex, int lastValue) {
+    int permDil, last;
+    bool added = false;
+    permutation->add(0);
+    while(!permutation->isEmpty() && permutation->getPosX(lastIndex) != lastValue) { // dokud neni zasobnik prazdny        
+        permDil = evaluator->evaluate();
+        cout << permutation;
+        cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
+        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {            
+            dilatation = permDil;
+            if (minPermutation != NULL) {
+                delete [] minPermutation;
+                //minPermutation = NULL;
+            }
+            minPermutation = permutation->getPerm();
+            cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
+            printPermutation(minPermutation, nodeCount);            
+        }    
+        if (!permutation->isFull() && permDil <= dilatation) {   // pokud mam volne pozice
+            int i = 0;
+            while (!permutation->add(i) && i < nodeCount) {
+                i++;
+            }      // pridam jako dalsi znak 0-ty uzel            
+        }
+        else {  // pokud nemuzu pridavat -> musim splhat nahoru
+           added = false;
+           while (!added && !permutation->isEmpty()) {               
+               last = permutation->getTop() + 1;
+               permutation->removeTop();                   
+               while (!added && last < nodeCount) {
+                   if (permutation->add(last)) {
+                       added = true;                     
+                   }
+                   last++;
+               }
+           }
+        }                                
+    }
+}
+
 void generateRec() {
     cout << permutation;
     cout << permutation << endl;
@@ -304,6 +354,8 @@ int main(int argc, char** argv) {
         evaluator = new DilatationEvaluator(permutation, nodes);
         //evaluator->setMinDilatation(INT_MAX);
         generate();
+        //generatePart(2, 1);
+        cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }
     catch (const char * e) {
