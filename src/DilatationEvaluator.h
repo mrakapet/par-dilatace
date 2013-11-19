@@ -18,11 +18,9 @@ public:
     DilatationEvaluator(Permutation *perm, Node** nodes);
     virtual ~DilatationEvaluator();
     int evaluate();
-    void setMinDilatation(int dil);
 private:
     Permutation *permutation;
     Node ** nodes;
-    int currentMinDilatation;
 };
 
 

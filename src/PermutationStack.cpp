@@ -10,6 +10,7 @@
 #include "PermutationStack.h"
 using namespace std;
 
+
 PermutationStack::PermutationStack(int size) {
     this->length=size;
     this->permutation=new int[size];
@@ -18,6 +19,9 @@ PermutationStack::PermutationStack(int size) {
         this->used[i] = false;
     }
     this->level=0;      // 0   
+    this->endLevel=0;
+    this->endVal=size;
+    
 }
 
 PermutationStack::PermutationStack(const PermutationStack& orig) {
@@ -27,6 +31,8 @@ PermutationStack::PermutationStack(const PermutationStack& orig) {
     used=new bool[length];    
     memcpy(used,orig.used,length);
     level=orig.level;
+    endVal=orig.endVal;
+    endLevel=orig.endLevel;
 }
 
 PermutationStack::~PermutationStack() {
@@ -35,7 +41,7 @@ PermutationStack::~PermutationStack() {
 }
 
 bool PermutationStack::add(int i){
-    if(!used[i]){
+    if((!used[i]) && ((level>endLevel) || (endVal>i)) && (!(level<endLevel))){
         permutation[level++]=i;
         used[i]=true;
         return true;
@@ -63,18 +69,18 @@ int PermutationStack::getLevel(){
     return level-1;     // -1
 }
 
-bool PermutationStack::isEmpty() {
-    if (level <= 0) {
-        return true;
-    }
-    return false;
+bool PermutationStack::isEnd() {
+    return level<endLevel; 
 }
 
-bool PermutationStack::isFull() {
-    if (level >= length) {
-        return true;
+void PermutationStack::print(bool eol) {
+    cout << "Permutace (level=" << getLevel() << "): ";
+    for (int i=0; i < level; i++) {
+        cout << permutation[i] << " ";
     }
-    return false;
+    if (eol) {
+        cout << endl;
+    }    
 }
 
 ostream& operator<<(ostream& os, PermutationStack* p) {
@@ -82,15 +88,50 @@ ostream& operator<<(ostream& os, PermutationStack* p) {
     for (int i=0; i < p->level; i++) {
         cout << p->permutation[i] << " ";
     }
-    return os;
 }
 
 int* PermutationStack::getPerm(){
     int* out = new int[length];
-    //memcpy(out,permutation,length * sizeof(int));    
-    for (int i=0; i < length; i++) {
-        out[i] = permutation[i];
+    memcpy(out,permutation,length * sizeof(int));    
+    return out;
+}
+
+WrappedPermutation * PermutationStack::wrap(){
+    int divLevel=-1,divValue=endVal;
+    WrappedPermutation * out = NULL;
+    for(int i=permutation[endLevel]+1;i<endVal;i++){
+        if(!used[i]){
+            divLevel=endLevel;
+            endVal=i;
+            break;
+        }
+    }
+    for(int i = endLevel+1;(i<length) && (divLevel==-1);i++){
+        for(int j = permutation[i]+1;j<length;j++){
+            if(!used[j]){
+                divLevel=i;
+                endLevel=i;
+                endVal=j;
+                break;
+            }
+        }
+    }
+    if(divLevel!=-1){
+        out = new WrappedPermutation(permutation,divLevel,divValue);
+        out->start[divLevel]=endVal;
     }
     return out;
 }
+
+void PermutationStack::unwrap(WrappedPermutation msg){
+    this->endLevel=msg.endLevel;
+    this->endVal=msg.endVal;
+    this->level=endLevel+1;
+    memcpy(this->permutation,msg.start,endLevel*sizeof(int));
+}
+
+bool PermutationStack::isFull(){
+    return level==length;
+}
+
 

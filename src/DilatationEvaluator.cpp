@@ -27,14 +27,8 @@ int DilatationEvaluator::evaluate(){
         //cout << "[" << actual << " - " << neighbor << " = " << distance << "]";
         if(maxDistance < distance){
             maxDistance=distance;
-            //if(maxDistance>=currentMinDilatation)
-            //    return currentMinDilatation;
         }
     }
     //currentMinDilatation=maxDistance;
     return maxDistance;
-}
-
-void DilatationEvaluator::setMinDilatation(int dil){
-    currentMinDilatation=dil;
 }

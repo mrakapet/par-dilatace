@@ -222,11 +222,11 @@ void generate() {
     int permDil, last;
     bool added = false;
     permutation->add(0);
-    while(!permutation->isEmpty()) { // dokud neni zasobnik prazdny        
+    while(!permutation->isEnd()) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
         cout << permutation;
-        cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {            
+        cout << "   -> " << permDil << (permDil >= dilatation ? " ---> blocked" : "") << endl;        
+        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
             dilatation = permDil;
             if (minPermutation != NULL) {
                 delete [] minPermutation;
@@ -236,7 +236,7 @@ void generate() {
             cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
             printPermutation(minPermutation, nodeCount);            
         }    
-        if (!permutation->isFull() && permDil <= dilatation) {   // pokud mam volne pozice
+        if (!permutation->isFull() && permDil < dilatation) {   // pokud mam volne pozice
             int i = 0;
             while (!permutation->add(i) && i < nodeCount) {
                 i++;
@@ -244,13 +244,11 @@ void generate() {
         }
         else {  // pokud nemuzu pridavat -> musim splhat nahoru
            added = false;
-           while (!added && !permutation->isEmpty()) {               
+           while (!added && !permutation->isEnd()) {               
                last = permutation->getTop() + 1;
                permutation->removeTop();                   
                while (!added && last < nodeCount) {
-                   if (permutation->add(last)) {
-                       added = true;                     
-                   }
+                   added = permutation->add(last);
                    last++;
                }
            }
@@ -259,6 +257,8 @@ void generate() {
 }
 
 /**
+ * O částečné generování se stará přímo permutace /wrap, /unwrap
+ * 
  * Metoda provede generovani vsech permutaci od soucasne permutace vcetne do
  * posledni zadane permutace exkluzivne.
  * Posledni permutace se pozna tak, ze se v ni na zadane pozici (indexu) nachazi
@@ -272,7 +272,7 @@ void generatePart(int lastIndex, int lastValue) {
     int permDil, last;
     bool added = false;
     permutation->add(0);
-    while(!permutation->isEmpty() && permutation->getPosX(lastIndex) != lastValue) { // dokud neni zasobnik prazdny        
+    while(!permutation->isEnd() && permutation->getPosX(lastIndex) != lastValue) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
         cout << permutation;
         cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
@@ -294,13 +294,11 @@ void generatePart(int lastIndex, int lastValue) {
         }
         else {  // pokud nemuzu pridavat -> musim splhat nahoru
            added = false;
-           while (!added && !permutation->isEmpty()) {               
+           while (!added && !permutation->isEnd()) {               
                last = permutation->getTop() + 1;
                permutation->removeTop();                   
                while (!added && last < nodeCount) {
-                   if (permutation->add(last)) {
-                       added = true;                     
-                   }
+                   added = permutation->add(last);
                    last++;
                }
            }

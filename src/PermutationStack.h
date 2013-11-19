@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include "Permutation.h"
+#include "WrapedPermutation.h"
 
 using namespace std;
 
@@ -23,15 +24,18 @@ public:
     bool removeTop();
     int getPosX(int x);
     int getLevel();
-    bool isEmpty();
-    bool isFull();
     int* getPerm(); 
-    
+    WrappedPermutation * wrap();
+    void unwrap(WrappedPermutation msg);
+    bool isEnd();
+    bool isFull();
     void print(bool eol = true);  
     friend ostream& operator<<(ostream& os, PermutationStack* p);
     
 private:
     int * permutation;
+    int endLevel;
+    int endVal;
     bool * used;
     int length;
     int level;
