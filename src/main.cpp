@@ -5,6 +5,10 @@
  * Created on October 20, 2013, 1:31 PM
  */
 
+
+// používáme komunikaci???
+//#define MPI
+
 #include <cstdlib>
 #include <stdio.h>
 #include <iostream>
@@ -19,15 +23,8 @@
 
 using namespace std;
   
-unsigned int            nodeCount = 0;
-Node**                  nodes = NULL;
-ifstream                inputFile;
-WLengthMatrix*          wMatrix = NULL;
-int                     lowerLimit = 0;
-PermutationStack*       permutation = NULL;
-DilatationEvaluator*    evaluator = NULL;
-int                     dilatation = INT_MAX;
-int*                    minPermutation = NULL;
+#include "globals.cpp"
+#include "Communication.cpp"
 
 bool fileExist (const char * fileName) {
     // Existence souboru se overi pokusem o otevreni souboru.
@@ -171,6 +168,9 @@ void cleanUp() {
     if (minPermutation != NULL) {
         delete [] minPermutation;
     }
+#ifndef MPI
+    finalize();
+#endif
 }
 
 /**
@@ -260,31 +260,33 @@ void generate() {
  * O částečné generování se stará přímo permutace /wrap, /unwrap
  * 
  * Metoda provede generovani vsech permutaci od soucasne permutace vcetne do
- * posledni zadane permutace exkluzivne.
- * Posledni permutace se pozna tak, ze se v ni na zadane pozici (indexu) nachazi
- * zadana hodnota. Jinymi slovy se zarazime pred vstupem do zadane vetve stromu
- * stavoveho prostoru.
- * pr: generatePart(2,1)        -> posledni permutace: _ _ 1 _ ...
+ * posledni zadane permutace exkluzivne. 
+ * Pokud jí dojde práce, požádá o další.
+ * Skončí v okamžiku přijmutí signálu terminate a nebo globálního dojití práce
  * @param lastIndex pozice hranicni hodnoty v permutaci
  * @param lastValue hranicni hodnota
  */
-void generatePart(int lastIndex, int lastValue) {
+void generatePart() {
     int permDil, last;
     bool added = false;
     permutation->add(0);
-    while(!permutation->isEnd() && permutation->getPosX(lastIndex) != lastValue) { // dokud neni zasobnik prazdny        
+    while(!finished) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
         cout << permutation;
         cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {            
+        if (permDil < dilatation && permutation->isFull()) {            
             dilatation = permDil;
             if (minPermutation != NULL) {
                 delete [] minPermutation;
                 //minPermutation = NULL;
             }
             minPermutation = permutation->getPerm();
+            sendBest(); //odešleme ostatním procesům nejlepší výsledek
             cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
-            printPermutation(minPermutation, nodeCount);            
+            printPermutation(minPermutation, nodeCount);  
+            if(dilatation<=lowerLimit){
+                sendTerminate(); //Dosáhly jsme nejslepšího možného výsledku. dáme vědět ostatním a skončíme
+            }
         }    
         if (!permutation->isFull() && permDil <= dilatation) {   // pokud mam volne pozice
             int i = 0;
@@ -302,7 +304,13 @@ void generatePart(int lastIndex, int lastValue) {
                    last++;
                }
            }
-        }                                
+        }
+        if(permutation->isEnd()){
+            WrappedPermutation in = getWork();
+            if(finished)break;
+            permutation->unwrap(in);
+        }
+        checkForMsg();
     }
 }
 
@@ -342,6 +350,12 @@ void generateRec() {
 int main(int argc, char** argv) {    
     
     try {
+#ifdef MPI
+         //init of MPI
+         initialize();
+         
+#endif
+        
         // nacteni dat
         getParameters(argc, argv);                       
         loadData();
@@ -351,8 +365,11 @@ int main(int argc, char** argv) {
         permutation = new PermutationStack(nodeCount);
         evaluator = new DilatationEvaluator(permutation, nodes);
         //evaluator->setMinDilatation(INT_MAX);
+#ifndef MPI
         generate();
-        //generatePart(2, 1);
+#else
+        generatePart();
+#endif
         cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }

@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include "Permutation.h"
-#include "WrapedPermutation.h"
+#include "WrappedPermutation.h"
 
 using namespace std;
 

@@ -8,9 +8,8 @@
 #ifndef PERMUTATOR_H
 #define	PERMUTATOR_H
 
-#include "WrapedPermutation.h"
+#include "WrappedPermutation.h"
 
-struct msg;
 
 class Permutation {
 public:
