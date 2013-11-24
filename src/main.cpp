@@ -5,6 +5,10 @@
  * Created on October 20, 2013, 1:31 PM
  */
 
+
+// používáme komunikaci???
+//#define MPI
+
 #include <cstdlib>
 #include <stdio.h>
 #include <iostream>
@@ -21,15 +25,8 @@
 
 using namespace std;
   
-unsigned int            nodeCount = 0;
-Node**                  nodes = NULL;
-ifstream                inputFile;
-WLengthMatrix*          wMatrix = NULL;
-int                     lowerLimit = 0;
-PermutationStack*       permutation = NULL;
-DilatationEvaluator*    evaluator = NULL;
-int                     dilatation = INT_MAX;
-int*                    minPermutation = NULL;
+#include "globals.cpp"
+#include "Communication.cpp"
 
 void getParameters(int argc, char** argv) {
     if (argc != 2) {
@@ -120,6 +117,9 @@ void cleanUp() {
     if (minPermutation != NULL) {
         delete [] minPermutation;
     }
+#ifndef MPI
+    finalize();
+#endif
 }
 
 /**
@@ -197,7 +197,13 @@ void generate() {
                    last++;
                }
            }
-        }                                            
+        }
+        if(permutation->isEnd()){
+            WrappedPermutation in = getWork();
+            if(finished)break;
+            permutation->unwrap(in);
+        }
+        checkForMsg();
     }
 }
 
@@ -224,6 +230,12 @@ void testByParts() {
 int main(int argc, char** argv) {    
     
     try {
+#ifdef MPI
+         //init of MPI
+         initialize();
+         
+#endif
+        
         // nacteni dat
         getParameters(argc, argv);                       
         loadData();
@@ -231,10 +243,15 @@ int main(int argc, char** argv) {
         
         // vypocet dilatace
         permutation = new PermutationStack(nodeCount);
-        evaluator = new DilatationEvaluator(permutation, nodes);        
+        evaluator = new DilatationEvaluator(permutation, nodes);
+        //evaluator->setMinDilatation(INT_MAX);
+#ifndef MPI
+        //generate();
+#else
         permutation->add(0);
-        testByParts();
-        //generate();        
+        //testByParts();
+        generate();
+#endif
         cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }

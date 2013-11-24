@@ -10,7 +10,6 @@
 
 #include "WrappedPermutation.h"
 
-struct msg;
 
 class Permutation {
 public:
