@@ -12,10 +12,12 @@
 #include <cstring>
 #include <climits>
 
+#include "File.h"
 #include "Node.h"
 #include "WLengthMatrix.h"
 #include "DilatationEvaluator.h"
 #include "PermutationStack.h"
+#include "Visualizator.h"
 
 using namespace std;
   
@@ -29,41 +31,14 @@ DilatationEvaluator*    evaluator = NULL;
 int                     dilatation = INT_MAX;
 int*                    minPermutation = NULL;
 
-bool fileExist (const char * fileName) {
-    // Existence souboru se overi pokusem o otevreni souboru.
-    ifstream file (fileName, ios::binary | ios::in);
-    if (file) { // existujici otevreny soubor se musi kvuli dalsimu pouziti zavrit
-        file.close();
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-void openFile(char* fileName, ifstream& file) {
-    file.open(fileName, ios::binary | ios::in);
-    if (!file)
-        throw "Vstupni soubor nenalezen!";
-    if (file.peek() == EOF) {
-        file.close();
-        throw "Soubor je prazdny!";
-    }
-}
-void openFile(char* fileName, ofstream& file) {
-    file.open(fileName, ios::out);
-    if (!file.is_open()) {
-        throw "Nepodarilo se otevrit/vytvorit vystupni soubor.";
-    }
-}
-
 void getParameters(int argc, char** argv) {
     if (argc != 2) {
         throw "Zadejte nazev souboru reprezentujiciho graf.";
     }
-    if (!fileExist(argv[1])) {
+    if (!File::fileExist(argv[1])) {
         throw "Soubor neexistuje.";
     }
-    openFile(argv[1], inputFile);
+    File::openFile(argv[1], inputFile);
 }
 
 int readCountOfNodes(ifstream& file) {
@@ -121,34 +96,8 @@ void printNodes() {
 }
 
 /**
- * Vygenerovani graficke podoby grafu pomoci nastroje neato (graphviz). Nejprve
- * je vygenerovan soubor "graf.dot", ktery je vstupem programu neato, ktery
- * vygeneruje obrazek (.eps) grafu).
- * Na Windows asi nebude fungovat !!!
- * @param nodes pole vsech uzlu
- * @param nodeCount pocet  uzlu grafu
+ * Uvolneni veskere alokovane pameti.
  */
-bool generateGraphVizualization(Node** nodes, int nodeCount) {
-    ofstream graph;         
-    openFile((char*)"graf.dot", graph); // vytvoreni souboru s definici grafu
-    graph << "graph graf {\n";    
-    // definice sousednosti uzlu:    1 -- 2 -- 3;
-    for (int i=0; i < nodeCount; i++) {        
-        for (int j=0; j < nodes[i]->getCountOfNeighbours(); j++) {
-            if (i >= nodes[i]->getNeighbour(j)->getId()) {
-                graph << "\t" << i << " -- " << nodes[i]->getNeighbour(j)->getId() << ";\n";
-            }            
-        }                        
-    }          
-    graph << "}\n";
-    graph.close();    
-    // vykresleni grafu
-    int result = system("neato -Teps graf.dot -o graf.eps");
-    if (result != 0) {
-        throw "Generovani vizualizace grafu nedopadlo uspesne.";
-    }
-}
-
 void cleanUp() {
     if (inputFile.is_open()) {
         inputFile.close();    
@@ -201,46 +150,42 @@ void loadData() {
     wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
 
     // vizualizace grafu - na Windows asi nebude fungovat
-    generateGraphVizualization(nodes, nodeCount);
+    //Visualizator::generateGraphVizualization(nodes, nodeCount);
 }
 
 
-void printPermutation(int * perm,int size){
-    //int* temp = new int[size];
-    //for(int i = 0;i<size;i++){
-    //    temp[perm[i]]=i;
-    //}
-    for (int i = 0; i < size; i++) {
-        //cout<<temp[i]<<" ";
+void printPermutation(int * perm,int size){    
+    for (int i = 0; i < size; i++) {        
         cout << perm[i] << " ";
     }
-    cout<<endl;
-    //delete [] temp;
+    cout<<endl;    
 }
 
 void generate() {
     int permDil, last;
     bool added = false;
-    permutation->add(0);
-    while(!permutation->isEnd()) { // dokud neni zasobnik prazdny        
+    //permutation->add(0);
+    while(!permutation->isEnd() && dilatation != lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
-        cout << permutation;
-        cout << "   -> " << permDil << (permDil >= dilatation ? " ---> blocked" : "") << endl;        
+        cout << permutation;        
+        cout << (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
         if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
-            dilatation = permDil;
+            dilatation = permDil;            
             if (minPermutation != NULL) {
-                delete [] minPermutation;
-                //minPermutation = NULL;
+                delete [] minPermutation;                
             }
-            minPermutation = permutation->getPerm();
-            cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
-            printPermutation(minPermutation, nodeCount);            
+            minPermutation = permutation->getPerm();            
+            cout << "---Aktualni minimalni dilatace:\t" << permutation << endl;            
+            if (dilatation == lowerLimit) {
+                cout << "Nalezena permutace s dilataci rovne spodni mezi." << endl;
+                break;
+            }
         }    
         if (!permutation->isFull() && permDil < dilatation) {   // pokud mam volne pozice
             int i = 0;
-            while (!permutation->add(i) && i < nodeCount) {
+            while (!permutation->add(i) && i < nodeCount) { // pridam jako dalsi znak 0-ty uzel
                 i++;
-            }      // pridam jako dalsi znak 0-ty uzel            
+            }            
         }
         else {  // pokud nemuzu pridavat -> musim splhat nahoru
            added = false;
@@ -252,88 +197,25 @@ void generate() {
                    last++;
                }
            }
-        }                                
+        }                                            
     }
 }
 
-/**
- * O částečné generování se stará přímo permutace /wrap, /unwrap
- * 
- * Metoda provede generovani vsech permutaci od soucasne permutace vcetne do
- * posledni zadane permutace exkluzivne.
- * Posledni permutace se pozna tak, ze se v ni na zadane pozici (indexu) nachazi
- * zadana hodnota. Jinymi slovy se zarazime pred vstupem do zadane vetve stromu
- * stavoveho prostoru.
- * pr: generatePart(2,1)        -> posledni permutace: _ _ 1 _ ...
- * @param lastIndex pozice hranicni hodnoty v permutaci
- * @param lastValue hranicni hodnota
- */
-void generatePart(int lastIndex, int lastValue) {
-    int permDil, last;
-    bool added = false;
-    permutation->add(0);
-    while(!permutation->isEnd() && permutation->getPosX(lastIndex) != lastValue) { // dokud neni zasobnik prazdny        
-        permDil = evaluator->evaluate();
-        cout << permutation;
-        cout << "   -> " << permDil << (permDil > dilatation ? " ---> blocked" : "") << endl;        
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {            
-            dilatation = permDil;
-            if (minPermutation != NULL) {
-                delete [] minPermutation;
-                //minPermutation = NULL;
-            }
-            minPermutation = permutation->getPerm();
-            cout << "---Current minimal dilatation::\t" << permutation << " --->>> ";
-            printPermutation(minPermutation, nodeCount);            
-        }    
-        if (!permutation->isFull() && permDil <= dilatation) {   // pokud mam volne pozice
-            int i = 0;
-            while (!permutation->add(i) && i < nodeCount) {
-                i++;
-            }      // pridam jako dalsi znak 0-ty uzel            
-        }
-        else {  // pokud nemuzu pridavat -> musim splhat nahoru
-           added = false;
-           while (!added && !permutation->isEnd()) {               
-               last = permutation->getTop() + 1;
-               permutation->removeTop();                   
-               while (!added && last < nodeCount) {
-                   added = permutation->add(last);
-                   last++;
-               }
-           }
-        }                                
-    }
-}
-
-void generateRec() {
-    cout << permutation;
-    cout << permutation << endl;
-    if (permutation->getLevel() > 0) {
-        int permDil = evaluator->evaluate();
-        if (permutation->isFull()) { cout << "   -> " << permDil; }
-        if (permDil > dilatation) {
-            //cout << " - blocked";
-            //cout << endl;
-            permutation->removeTop();
-            return;
-        }
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->getLevel() == nodeCount-1) {            
-            dilatation = permDil;
-            if (minPermutation != NULL) {
-                delete [] minPermutation;
-                minPermutation = NULL;
-            }
-            minPermutation = permutation->getPerm();
-        }                
-    }        
-    //cout << endl;    
-    for (int i=0; i<nodeCount; i++) {
-        if (permutation->add(i)) {
-            generateRec();
-        }
-    }
-    permutation->removeTop();
+void testByParts() {
+    permutation->setBound(0, 1);
+    generate();
+    cout << "---------------------------------------------------------" << endl;
+    permutation->setBound(0,2);
+    generate();
+    cout << "---------------------------------------------------------" << endl;
+    permutation->setBound(0,3);
+    generate();
+    cout << "---------------------------------------------------------" << endl;
+    permutation->setBound(0,4);
+    generate();
+    cout << "---------------------------------------------------------" << endl;
+    permutation->removeBound();
+    generate();
 }
 
 /*
@@ -349,10 +231,10 @@ int main(int argc, char** argv) {
         
         // vypocet dilatace
         permutation = new PermutationStack(nodeCount);
-        evaluator = new DilatationEvaluator(permutation, nodes);
-        //evaluator->setMinDilatation(INT_MAX);
-        generate();
-        //generatePart(2, 1);
+        evaluator = new DilatationEvaluator(permutation, nodes);        
+        permutation->add(0);
+        testByParts();
+        //generate();        
         cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }

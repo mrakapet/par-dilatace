@@ -15,7 +15,8 @@ PermutationStack::PermutationStack(int size) {
     this->length=size;
     this->permutation=new int[size];
     this->used=new bool[size];
-    for (int i=0; i < size; i++) {
+    for (int i=0; i < size; i++) {        
+        this->permutation[i] = 0;
         this->used[i] = false;
     }
     this->level=0;      // 0   
@@ -41,7 +42,7 @@ PermutationStack::~PermutationStack() {
 }
 
 bool PermutationStack::add(int i){
-    if((!used[i]) && ((level>endLevel) || (endVal>i)) && (!(level<endLevel))){
+    if((!used[i]) /*&& ((level>endLevel) || (endVal>i)) && (!(level<endLevel))*/){
         permutation[level++]=i;
         used[i]=true;
         return true;
@@ -70,7 +71,16 @@ int PermutationStack::getLevel(){
 }
 
 bool PermutationStack::isEnd() {
-    return level<endLevel; 
+    if (level <= 0) {
+        cout << "Level < 0  ========= level = " << level << endl;
+        return true;
+    }
+    if (permutation[endLevel] == endVal) {
+        cout << "Endvalue reached." << endl;
+        return true;
+    }
+    return false;
+    //return level<=endLevel; 
 }
 
 void PermutationStack::print(bool eol) {
@@ -86,8 +96,9 @@ void PermutationStack::print(bool eol) {
 ostream& operator<<(ostream& os, PermutationStack* p) {
     os << "Permutace (level=" << p->getLevel() << "): ";
     for (int i=0; i < p->level; i++) {
-        cout << p->permutation[i] << " ";
+        os << p->permutation[i] << " ";
     }
+    return os;
 }
 
 int* PermutationStack::getPerm(){
@@ -134,4 +145,12 @@ bool PermutationStack::isFull(){
     return level==length;
 }
 
+void PermutationStack::setBound(int endLevel, int endValue) {
+    this->endLevel = endLevel;
+    this->endVal = endValue;
+}
 
+void PermutationStack::removeBound() {
+    this->endLevel = 0;
+    this->endVal = -1;
+}

@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include "Permutation.h"
-#include "WrapedPermutation.h"
+#include "WrappedPermutation.h"
 
 using namespace std;
 
@@ -31,6 +31,8 @@ public:
     bool isFull();
     void print(bool eol = true);  
     friend ostream& operator<<(ostream& os, PermutationStack* p);
+    void setBound(int endLevel, int endValue);
+    void removeBound();
     
 private:
     int * permutation;
