@@ -163,7 +163,7 @@ void generate() {
     int permDil, last;
     bool added = false;
     //permutation->add(0);
-    while(finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
+    while(!finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
         cout << permutation;        
         cout << (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
         //evaluator->setMinDilatation(INT_MAX);
         
         int start = nodeCount/processNumber * processId; //nastavení hranic části náležících danému procesu
-        int end = nodeCount/processNumber * processId+1;
+        int end = nodeCount/processNumber * (processId+1);
         permutation->add(start);
         permutation->setBound(0,end);
         //testByParts();
@@ -260,9 +260,10 @@ int main(int argc, char** argv) {
         return 1;
     }   
     
-        
-    cout << "\nDilatace grafu je " << dilatation << ":" << endl;
-    printPermutation(minPermutation, nodeCount);
+    if(processId==0){    
+        cout << "\nDilatace grafu je " << dilatation << ":" << endl;
+        printPermutation(minPermutation, nodeCount);
+    }
     cleanUp();  // uklid
     return 0;
 }
