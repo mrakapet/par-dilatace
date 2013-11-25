@@ -67,9 +67,9 @@ WrappedPermutation * getWork(){
                 int* perm;
                 int size, end;
                 int position=0;
-                MPI_Unpack(buf,nodeCount+1,&position,&size,1,MPI_INT,MPI_COMM_WORLD);
-                MPI_Unpack(buf,nodeCount+1,&position,&end,1,MPI_INT,MPI_COMM_WORLD);
-                MPI_Unpack(buf,nodeCount+1,&position,&perm,size,MPI_INT,MPI_COMM_WORLD);
+                MPI_Unpack(buf,status.count,&position,&size,1,MPI_INT,MPI_COMM_WORLD);
+                MPI_Unpack(buf,status.count,&position,&end,1,MPI_INT,MPI_COMM_WORLD);
+                MPI_Unpack(buf,status.count,&position,&perm,size,MPI_INT,MPI_COMM_WORLD);
                 return new WrappedPermutation(perm,size,end);
             }break;
             case MSG_TERMINATE:{
@@ -103,13 +103,13 @@ void sendWork(int dest){
         sendRefuse(dest);
         return;
     }
-    int* buf = new int[msg->endLevel+2];
+    int* buf = new int[msg->endLevel+3];
     int pos=0;
-    MPI_Pack(&msg->endLevel,1,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
-    MPI_Pack(&msg->endVal,1,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
-    MPI_Pack(&msg->start,msg->endLevel,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
+    MPI_Pack(&msg->endLevel,1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
+    MPI_Pack(&msg->endVal,1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
+    MPI_Pack(&msg->start,msg->endLevel+1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_ACCEPTED<<endl;
-    MPI_Send(buf, msg->endLevel+2, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
+    MPI_Send(buf, msg->endLevel+3, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
 }
 

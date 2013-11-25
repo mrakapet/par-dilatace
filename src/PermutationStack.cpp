@@ -138,7 +138,7 @@ void PermutationStack::unwrap(WrappedPermutation * msg){
     this->endLevel=msg->endLevel;
     this->endVal=msg->endVal;
     this->level=endLevel+1;
-    memcpy(this->permutation,msg->start,endLevel*sizeof(int));
+    memcpy(this->permutation,msg->start,(endLevel+1)*sizeof(int));
 }
 
 bool PermutationStack::isFull(){
