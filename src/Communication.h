@@ -47,6 +47,7 @@ WrappedPermutation * getWork(){
     MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
     while(i<processNumber){
         MPI_Recv(buf, nodeCount+1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+        cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
         switch(status.MPI_TAG){
             case MSG_REQUEST_WORK:{
                 sendRefuse(status.MPI_SOURCE);
@@ -130,6 +131,7 @@ void checkForMsg(){
     while(!finished){
         MPI_Iprobe ( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status );
         if(!flag)break;
+        cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
         int * buf;
         switch(status.MPI_TAG){
             case MSG_BEST_RESULT:
