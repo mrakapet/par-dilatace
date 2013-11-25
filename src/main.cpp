@@ -228,9 +228,9 @@ void testByParts() {
  * 
  */
 int main(int argc, char** argv) {    
-    barier();
     try {
         initialize(argc, argv);
+        barier();
         
         // nacteni dat
         getParameters(argc, argv);                       
