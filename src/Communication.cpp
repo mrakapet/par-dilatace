@@ -67,6 +67,7 @@ WrappedPermutation * getWork(){
                 
         }
     }
+    finished=true;
     sendTerminate();
     return NULL;
 }
@@ -125,6 +126,7 @@ void checkForMsg(){
                 sendWork(status.MPI_SOURCE);
                 break;
             case MSG_TERMINATE:
+                sendTerminate();
                 finished=true;
                 return;
             default:

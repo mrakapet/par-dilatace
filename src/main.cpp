@@ -115,9 +115,7 @@ void cleanUp() {
     if (minPermutation != NULL) {
         delete [] minPermutation;
     }
-#ifndef MPI
     finalize();
-#endif
 }
 
 /**
