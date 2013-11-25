@@ -60,6 +60,7 @@ WrappedPermutation * getWork(){
             }break;
             case MSG_WORK_REQUEST_DENIED:{
                 cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
+                i++;
                 MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
                 cout<<"Process:"<<processId<<" msg send"<<endl;
             }break;
