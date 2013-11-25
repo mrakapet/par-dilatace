@@ -23,6 +23,7 @@
 #include "globals.h"
 #include "Communication.h"
 
+#define CHECK 100
 using namespace std;
 //  
 //#include "globals.cpp"
@@ -168,6 +169,7 @@ void printPermutation(int * perm,int size){
 void generate() {
     int permDil, last;
     bool added = false;
+    int checkMsg=0;
     //permutation->add(0);
     while(!finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
@@ -209,7 +211,8 @@ void generate() {
             if(finished)break;
             permutation->unwrap(in);
         }
-        checkForMsg();
+        if(checkMsg%CHECK==0)checkForMsg();
+        checkMsg++;
     }
 }
 
@@ -262,11 +265,11 @@ int main(int argc, char** argv) {
                 
     }
     catch (const char * e) {
-        cout << "Chyba: " << e << endl;                
+        cout <<processId<< ": Chyba: " << e << endl;                
         cleanUp(); // uklid
         return 1;
     }   
-    
+
     barier();
     if(processId==0){    
         cout <<processId<< ":\nDilatace grafu je " << dilatation << ":" << endl;
