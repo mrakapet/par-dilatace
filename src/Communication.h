@@ -28,6 +28,10 @@ using namespace std;
 int processId;
 int processNumber;
 
+void barier(){
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
 void sendRefuse(int dest){
     MPI_Send(NULL, 0, MPI_INT, dest, MSG_WORK_REQUEST_DENIED, MPI_COMM_WORLD);
 }

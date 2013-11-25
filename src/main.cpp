@@ -228,7 +228,7 @@ void testByParts() {
  * 
  */
 int main(int argc, char** argv) {    
-    
+    barier();
     try {
         initialize(argc, argv);
         
@@ -264,6 +264,7 @@ int main(int argc, char** argv) {
         cout << "\nDilatace grafu je " << dilatation << ":" << endl;
         printPermutation(minPermutation, nodeCount);
     }
+    barier();
     cleanUp();  // uklid
     return 0;
 }
