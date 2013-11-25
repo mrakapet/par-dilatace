@@ -152,6 +152,7 @@ void checkForMsg(){
         int * buf;
         switch(status.MPI_TAG){
             case MSG_BEST_RESULT:
+                cout << "Process: " << processId << " receiving Best Result" << endl;
                 recieveBest();
                 break;
             case MSG_REQUEST_WORK:

@@ -173,15 +173,15 @@ void generate() {
     //permutation->add(0);
     while(!finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
-        cout <<processId<< ": "<< permutation;        
-        cout <<processId<< ": "<< (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
+        //cout <<processId<< ": "<< permutation;        
+        //cout <<processId<< ": "<< (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
         if (permDil < dilatation && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
             dilatation = permDil;            
             if (minPermutation != NULL) {
                 delete [] minPermutation;                
             }
             minPermutation = permutation->getPerm();            
-            cout <<processId<< ":---Aktualni minimalni dilatace:\t" << permutation << endl;         
+            cout <<processId<< ":---Aktualni minimalni dilatace: " << dilatation << "\t" << permutation << endl;         
             sendBest(); //posílám ostatním svůj nejlepší výsledek
             if (dilatation <= lowerLimit) {
                 cout <<processId<< ":Nalezena permutace s dilataci rovne spodni mezi." << endl;
