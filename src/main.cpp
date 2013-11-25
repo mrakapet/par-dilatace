@@ -152,7 +152,8 @@ void loadData() {
 }
 
 
-void printPermutation(int * perm,int size){    
+void printPermutation(int * perm,int size){ 
+    cout<<processId<< ": ";
     for (int i = 0; i < size; i++) {        
         cout << perm[i] << " ";
     }
@@ -165,18 +166,18 @@ void generate() {
     //permutation->add(0);
     while(!finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
-        cout << permutation;        
-        cout << (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
+        cout <<processId<< ": "<< permutation;        
+        cout <<processId<< ": "<< (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
         if (permDil < dilatation && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
             dilatation = permDil;            
             if (minPermutation != NULL) {
                 delete [] minPermutation;                
             }
             minPermutation = permutation->getPerm();            
-            cout << "---Aktualni minimalni dilatace:\t" << permutation << endl;         
+            cout <<processId<< ":---Aktualni minimalni dilatace:\t" << permutation << endl;         
             sendBest(); //posílám ostatním svůj nejlepší výsledek
             if (dilatation <= lowerLimit) {
-                cout << "Nalezena permutace s dilataci rovne spodni mezi." << endl;
+                cout <<processId<< ":Nalezena permutace s dilataci rovne spodni mezi." << endl;
                 sendTerminate(); //ukončujeme to
                 break;
             }
@@ -230,6 +231,7 @@ void testByParts() {
 int main(int argc, char** argv) {    
     try {
         initialize(argc, argv);
+        cout<<processId<<": started"<<endl;
         barier();
         
         // nacteni dat
@@ -251,7 +253,7 @@ int main(int argc, char** argv) {
         //začínáme
         generate();
         
-        cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
+        cout <<processId<< ": Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }
     catch (const char * e) {
@@ -262,7 +264,7 @@ int main(int argc, char** argv) {
     
     barier();
     if(processId==0){    
-        cout << "\nDilatace grafu je " << dilatation << ":" << endl;
+        cout <<processId<< ":\nDilatace grafu je " << dilatation << ":" << endl;
         printPermutation(minPermutation, nodeCount);
     }
     cleanUp();  // uklid
