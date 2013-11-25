@@ -117,7 +117,7 @@ WrappedPermutation * PermutationStack::wrap(){
             break;
         }
     }
-    for(int i = endLevel+1;(i<length) && (divLevel==-1);i++){
+    for(int i = endLevel+1;(i<length-1) && (divLevel==-1);i++){
         for(int j = permutation[i]+1;j<length;j++){
             if(!used[j]){
                 divLevel=i;

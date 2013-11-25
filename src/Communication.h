@@ -59,18 +59,18 @@ WrappedPermutation * getWork(){
                 sendRefuse(status.MPI_SOURCE);
             }break;
             case MSG_WORK_REQUEST_DENIED:{
-                cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
                 i++;
+                cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
                 MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
                 cout<<"Process:"<<processId<<" msg send"<<endl;
             }break;
             case MSG_WORK_REQUEST_ACCEPTED:{
                 int* perm;
                 int size, end;
-                int position=0;
-                MPI_Unpack(buf,status.count,&position,&size,1,MPI_INT,MPI_COMM_WORLD);
-                MPI_Unpack(buf,status.count,&position,&end,1,MPI_INT,MPI_COMM_WORLD);
-                MPI_Unpack(buf,status.count,&position,&perm,size,MPI_INT,MPI_COMM_WORLD);
+                size=buf[0];
+                perm = new int[size+1];
+                end=buf[1];
+                memcpy(perm,buf+2*sizeof(int),(size+1)*sizeof(int));
                 return new WrappedPermutation(perm,size,end);
             }break;
             case MSG_TERMINATE:{
@@ -92,6 +92,7 @@ WrappedPermutation * getWork(){
             }break;
                 
         }
+       
     }
     finished=true;
     sendTerminate();
@@ -105,10 +106,9 @@ void sendWork(int dest){
         return;
     }
     int* buf = new int[msg->endLevel+3];
-    int pos=0;
-    MPI_Pack(&msg->endLevel,1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
-    MPI_Pack(&msg->endVal,1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
-    MPI_Pack(&msg->start,msg->endLevel+1,MPI_INT,buf,msg->endLevel+3,&pos,MPI_COMM_WORLD);
+    buf[0]=msg->endLevel;
+    buf[1]=msg->endVal;
+    memcpy(buf+2*sizeof(int),msg->start,(msg->endLevel+1)*sizeof(int));
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_ACCEPTED<<endl;
     MPI_Send(buf, msg->endLevel+3, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
