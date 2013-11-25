@@ -122,11 +122,7 @@ void sendBest(){
         cout<<"Process:"<<processId<<" msg send"<<endl;
 }
 
-void recieveBest(){
-    int * msg = new int[nodeCount+1];
-    MPI_Status status;
-    MPI_Recv(msg, nodeCount+1, MPI_INT, (processId+processNumber+1)%processNumber,MSG_BEST_RESULT, MPI_COMM_WORLD, &status);
-    cout<<"Process:"<<processId<<" msg recieved"<<endl;
+void recieveBest(int * msg){
     if(dilatation>msg[nodeCount]){
         dilatation=msg[nodeCount];
         if(minPermutation==NULL){
@@ -145,28 +141,24 @@ void recieveBest(){
 void checkForMsg(){
     int flag;
     MPI_Status status;
+    int * buf=new int[nodeCount+1];
     while(!finished){
         MPI_Iprobe ( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status );
         if(!flag)break;
         cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
-        int * buf;
+        MPI_Recv(buf,status.count,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD,&status);
+        cout<<"Process:"<<processId<<" msg recieved"<<endl;
         switch(status.MPI_TAG){
             case MSG_BEST_RESULT:
-                cout << "Process: " << processId << " receiving Best Result" << endl;
-                recieveBest();
+                recieveBest(buf);
                 break;
             case MSG_REQUEST_WORK:
-                MPI_Recv(buf,0,MPI_INT,status.MPI_SOURCE,MSG_REQUEST_WORK,MPI_COMM_WORLD,&status);
-                cout<<"Process:"<<processId<<" msg recieved"<<endl;
                 sendWork(status.MPI_SOURCE);
                 break;
             case MSG_TERMINATE:
                 sendTerminate();
                 finished=true;
                 return;
-            default:
-                MPI_Recv(buf,0,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD, &status);
-                cout<<"Process:"<<processId<<" msg recieved"<<endl;
         }
     }
     
