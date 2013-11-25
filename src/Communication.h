@@ -53,7 +53,7 @@ WrappedPermutation * getWork(){
     cout<<"Process:"<<processId<<" msg send"<<endl;
     while(i<processNumber){
         MPI_Recv(buf, nodeCount+1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
-        cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
+        cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl<<"Process:"<<processId<<" msg recieved"<<endl;
         switch(status.MPI_TAG){
             case MSG_REQUEST_WORK:{
                 sendRefuse(status.MPI_SOURCE);
@@ -126,6 +126,7 @@ void recieveBest(){
     int * msg = new int[nodeCount+1];
     MPI_Status status;
     MPI_Recv(msg, nodeCount+1, MPI_INT, (processId+processNumber+1)%processNumber,MSG_BEST_RESULT, MPI_COMM_WORLD, &status);
+    cout<<"Process:"<<processId<<" msg recieved"<<endl;
     if(dilatation>msg[nodeCount]){
         dilatation=msg[nodeCount];
         if(minPermutation==NULL){
@@ -135,10 +136,10 @@ void recieveBest(){
         cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
         MPI_Send(msg,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
-    }
-    if(dilatation <= lowerLimit){
-        sendTerminate();
-        finished=true;
+        if(dilatation <= lowerLimit){
+            sendTerminate();
+            finished=true;
+        }
     }
 }
 void checkForMsg(){
@@ -155,6 +156,7 @@ void checkForMsg(){
                 break;
             case MSG_REQUEST_WORK:
                 MPI_Recv(buf,0,MPI_INT,status.MPI_SOURCE,MSG_REQUEST_WORK,MPI_COMM_WORLD,&status);
+                cout<<"Process:"<<processId<<" msg recieved"<<endl;
                 sendWork(status.MPI_SOURCE);
                 break;
             case MSG_TERMINATE:
@@ -163,6 +165,7 @@ void checkForMsg(){
                 return;
             default:
                 MPI_Recv(buf,0,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD, &status);
+                cout<<"Process:"<<processId<<" msg recieved"<<endl;
         }
     }
     
