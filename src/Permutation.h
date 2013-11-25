@@ -20,7 +20,7 @@ public:
     virtual int getLevel()=0; //return index of top item;
     virtual int* getPerm()=0; 
     virtual WrappedPermutation * wrap()=0;
-    virtual void unwrap(WrappedPermutation msg)=0;
+    virtual void unwrap(WrappedPermutation * msg)=0;
     virtual bool isEnd()=0;
     virtual bool isFull()=0;
 };

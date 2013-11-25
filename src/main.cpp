@@ -20,11 +20,13 @@
 #include "DilatationEvaluator.h"
 #include "PermutationStack.h"
 #include "Visualizator.h"
+#include "globals.h"
+#include "Communication.h"
 
 using namespace std;
-  
-#include "globals.cpp"
-#include "Communication.cpp"
+//  
+//#include "globals.cpp"
+//#include "Communication.cpp"
 
 void getParameters(int argc, char** argv) {
     if (argc != 2) {
@@ -197,7 +199,7 @@ void generate() {
            }
         }
         if(permutation->isEnd()){ //pokud mi došla práce, skusím si říci o další
-            WrappedPermutation in = getWork();
+            WrappedPermutation *in = getWork();
             if(finished)break;
             permutation->unwrap(in);
         }
@@ -228,7 +230,7 @@ void testByParts() {
 int main(int argc, char** argv) {    
     
     try {
-        initialize();
+        initialize(argc, argv);
         
         // nacteni dat
         getParameters(argc, argv);                       
@@ -242,7 +244,7 @@ int main(int argc, char** argv) {
         
         int start = nodeCount/processNumber * processId; //nastavení hranic části náležících danému procesu
         int end = nodeCount/processNumber * processId+1;
-        permutation->add(start)
+        permutation->add(start);
         permutation->setBound(0,end);
         //testByParts();
         

@@ -26,7 +26,7 @@ public:
     int getLevel();
     int* getPerm(); 
     WrappedPermutation * wrap();
-    void unwrap(WrappedPermutation msg);
+    void unwrap(WrappedPermutation * msg);
     bool isEnd();
     bool isFull();
     void print(bool eol = true);  

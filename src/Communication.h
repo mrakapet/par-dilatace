@@ -1,10 +1,20 @@
+/* 
+ * File:   Communication.h
+ * Author: kuba
+ *
+ * Created on 25. listopad 2013, 16:34
+ */
 
-
-#ifndef COMM_MODUL
-#define COMM_MODUL
+#ifndef COMMUNICATION_H
+#define	COMMUNICATION_H
 
 #include <mpi.h>
-#include "globals.cpp"
+#include <cstdlib>
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include "globals.h"
 #include "WrappedPermutation.h"
 
 using namespace std;
@@ -73,7 +83,7 @@ WrappedPermutation * getWork(){
 }
 
 void sendWork(int dest){
-    WrappedPermutation *msg = permutation->wrap();
+    WrappedPermutation * msg = permutation->wrap();
     if(msg==NULL){
         sendRefuse(dest);
         return;
@@ -149,4 +159,7 @@ void finalize(){
     MPI_Finalize();
 }
 
-#endif
+
+
+#endif	/* COMMUNICATION_H */
+
