@@ -50,6 +50,7 @@ WrappedPermutation * getWork(){
                 return new WrappedPermutation(perm,size,end);
             }break;
             case MSG_TERMINATE:{
+                finished=true;
                 sendTerminate();
                 return NULL;
             }break;
@@ -103,11 +104,15 @@ void recieveBest(){
         memcpy(minPermutation,msg,nodeCount*sizeof(int));
         MPI_Send(msg,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
     }
+    if(dilatation <= lowerLimit){
+        sendTerminate();
+        finished=true;
+    }
 }
 void checkForMsg(){
     int flag;
     MPI_Status status;
-    while(true){
+    while(!finished){
         MPI_Iprobe ( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status );
         if(!flag)break;
         int * buf;

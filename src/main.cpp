@@ -6,8 +6,6 @@
  */
 
 
-// používáme komunikaci???
-//#define MPI
 
 #include <cstdlib>
 #include <stdio.h>
@@ -165,19 +163,21 @@ void generate() {
     int permDil, last;
     bool added = false;
     //permutation->add(0);
-    while(!permutation->isEnd() && dilatation != lowerLimit) { // dokud neni zasobnik prazdny        
+    while(finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
         permDil = evaluator->evaluate();
         cout << permutation;        
         cout << (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
-        if (permDil < dilatation && permDil >= lowerLimit && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
+        if (permDil < dilatation && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
             dilatation = permDil;            
             if (minPermutation != NULL) {
                 delete [] minPermutation;                
             }
             minPermutation = permutation->getPerm();            
-            cout << "---Aktualni minimalni dilatace:\t" << permutation << endl;            
-            if (dilatation == lowerLimit) {
+            cout << "---Aktualni minimalni dilatace:\t" << permutation << endl;         
+            sendBest(); //posílám ostatním svůj nejlepší výsledek
+            if (dilatation <= lowerLimit) {
                 cout << "Nalezena permutace s dilataci rovne spodni mezi." << endl;
+                sendTerminate(); //ukončujeme to
                 break;
             }
         }    
@@ -198,7 +198,7 @@ void generate() {
                }
            }
         }
-        if(permutation->isEnd()){
+        if(permutation->isEnd()){ //pokud mi došla práce, skusím si říci o další
             WrappedPermutation in = getWork();
             if(finished)break;
             permutation->unwrap(in);
@@ -230,11 +230,7 @@ void testByParts() {
 int main(int argc, char** argv) {    
     
     try {
-#ifdef MPI
-         //init of MPI
-         initialize();
-         
-#endif
+        initialize();
         
         // nacteni dat
         getParameters(argc, argv);                       
@@ -245,13 +241,16 @@ int main(int argc, char** argv) {
         permutation = new PermutationStack(nodeCount);
         evaluator = new DilatationEvaluator(permutation, nodes);
         //evaluator->setMinDilatation(INT_MAX);
-#ifndef MPI
-        //generate();
-#else
-        permutation->add(0);
+        
+        int start = nodeCount/processNumber * processId; //nastavení hranic části náležících danému procesu
+        int end = nodeCount/processNumber * processId+1;
+        permutation->add(start)
+        permutation->setBound(0,end);
         //testByParts();
+        
+        //začínáme
         generate();
-#endif
+        
         cout << "Posledni vygenerovana permutace:\t" << permutation << endl;
                 
     }
