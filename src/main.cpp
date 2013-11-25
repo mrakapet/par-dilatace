@@ -260,11 +260,11 @@ int main(int argc, char** argv) {
         return 1;
     }   
     
+    barier();
     if(processId==0){    
         cout << "\nDilatace grafu je " << dilatation << ":" << endl;
         printPermutation(minPermutation, nodeCount);
     }
-    barier();
     cleanUp();  // uklid
     return 0;
 }
