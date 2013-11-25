@@ -33,21 +33,24 @@ void barier(){
 }
 
 void sendRefuse(int dest){
-    MPI_Send(NULL, 0, MPI_INT, dest, MSG_WORK_REQUEST_DENIED, MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_DENIED<<endl;
+    MPI_Send(NULL, 0, MPI_INT, dest, MSG_WORK_REQUEST_DENIED, MPI_COMM_WORLD);
+    cout<<"Process:"<processId<<" msg send"<<endl;
 }
 
 void sendTerminate(){
-    MPI_Send(NULL,0,MPI_INT, (processId+1)%processNumber, MSG_TERMINATE, MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_TERMINATE<<endl;
+    MPI_Send(NULL,0,MPI_INT, (processId+1)%processNumber, MSG_TERMINATE, MPI_COMM_WORLD);
+    cout<<"Process:"<processId<<" msg send"<<endl;
 }
 
 WrappedPermutation * getWork(){
     MPI_Status status;
     int i=1;
     int * buf=new int[nodeCount+1];
-    MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
+    MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
+    cout<<"Process:"<processId<<" msg send"<<endl;
     while(i<processNumber){
         MPI_Recv(buf, nodeCount+1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
         cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
@@ -56,8 +59,9 @@ WrappedPermutation * getWork(){
                 sendRefuse(status.MPI_SOURCE);
             }break;
             case MSG_WORK_REQUEST_DENIED:{
-                MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
                 cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
+                MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
+                cout<<"Process:"<processId<<" msg send"<<endl;
             }break;
             case MSG_WORK_REQUEST_ACCEPTED:{
                 int* perm;
@@ -80,8 +84,9 @@ WrappedPermutation * getWork(){
                         minPermutation= new int[nodeCount];
                     }
                     memcpy(minPermutation,buf,nodeCount*sizeof(int));
-                    MPI_Send(buf,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
                     cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
+                    MPI_Send(buf,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
+                    cout<<"Process:"<processId<<" msg send"<<endl;
                 }
             }break;
                 
@@ -103,16 +108,18 @@ void sendWork(int dest){
     MPI_Pack(&msg->endLevel,1,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
     MPI_Pack(&msg->endVal,1,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
     MPI_Pack(&msg->start,msg->endLevel,MPI_INT,buf,msg->endLevel+2,&pos,MPI_COMM_WORLD);
-    MPI_Send(buf, msg->endLevel+2, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_ACCEPTED<<endl;
+    MPI_Send(buf, msg->endLevel+2, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
+        cout<<"Process:"<processId<<" msg send"<<endl;
 }
 
 void sendBest(){
     int * msg = new int[nodeCount+1];
     msg[nodeCount]=dilatation;
     memcpy(msg,minPermutation,nodeCount*sizeof(int));
-    MPI_Send(msg, nodeCount+1, MPI_INT, (processId+1)%processNumber, MSG_BEST_RESULT, MPI_COMM_WORLD);
     cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
+    MPI_Send(msg, nodeCount+1, MPI_INT, (processId+1)%processNumber, MSG_BEST_RESULT, MPI_COMM_WORLD);
+        cout<<"Process:"<processId<<" msg send"<<endl;
 }
 
 void recieveBest(){
@@ -125,8 +132,9 @@ void recieveBest(){
             minPermutation= new int[nodeCount];
         }
         memcpy(minPermutation,msg,nodeCount*sizeof(int));
-        MPI_Send(msg,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
+        MPI_Send(msg,nodeCount+1,MPI_INT,(processId+1)%processNumber,MSG_BEST_RESULT,MPI_COMM_WORLD);
+        cout<<"Process:"<processId<<" msg send"<<endl;
     }
     if(dilatation <= lowerLimit){
         sendTerminate();
