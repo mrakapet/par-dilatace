@@ -81,15 +81,20 @@ void readNodesFromFile(ifstream& file, Node** nodes, WLengthMatrix* wMatrix, uns
 }
 
 void printNodes() {
-    cout << "\nUzly:" << endl;    
-    for (int i=0; i < nodeCount; i++) {
-        cout << nodes[i]->getId() << " -> ";        
-        for (int j = 0; j < nodes[i]->getCountOfNeighbours(); j++) {
-            cout << nodes[i]->getNeighbour(j)->getId() << ", ";
-        }                
+    if (processId == 0) {
+        cout << processId << ": Uzly:" << endl;    
+        for (int i=0; i < nodeCount; i++) {
+            cout << nodes[i]->getId() << " -> ";        
+            for (int j = 0; j < nodes[i]->getCountOfNeighbours(); j++) {
+                cout << nodes[i]->getNeighbour(j)->getId() << ", ";
+            }                
+            cout << endl;
+        }
         cout << endl;
     }
-    cout << endl;
+    else {
+        cout << processId << ": Uzly: Nacteny." << endl;    
+    }
 }
 
 /**
@@ -126,7 +131,7 @@ void cleanUp() {
 void loadData() {
     // zjisteni poctu uzlu grafu - prvni radek vstupniho souboru
     nodeCount = readCountOfNodes(inputFile);       
-    cout << "Pocet uzlu grafu: " << nodeCount << endl;
+    cout << processId << ": Pocet uzlu grafu: " << nodeCount << endl;
 
     // alokace a priprava pole uzlu a matice w-delek
     wMatrix = new WLengthMatrix(nodeCount);
@@ -142,8 +147,8 @@ void loadData() {
     // vypocet prumeru grafu a dolni meze dilatace
     wMatrix->aplyFloydWarshall();
     lowerLimit = wMatrix->getLowerLimit();
-    cout << "Prumer grafu: " << wMatrix->getDiameter() << endl;
-    cout << "Dolni mez dilatace: " << lowerLimit << endl;
+    cout << processId << ": Prumer grafu: " << wMatrix->getDiameter() << endl;
+    cout << processId << ": Dolni mez dilatace: " << lowerLimit << endl;
     delete wMatrix;       
     wMatrix = NULL; // kvuli testovani jestli uz je odstraneni
 
@@ -247,10 +252,10 @@ int main(int argc, char** argv) {
         int start = nodeCount/processNumber * processId; //nastavení hranic části náležících danému procesu
         int end = nodeCount/processNumber * (processId+1);
         permutation->add(start);
-        permutation->setBound(0,end);
-        //testByParts();
+        permutation->setBound(0,end);        
         
         //začínáme
+        //testByParts();
         generate();
         
         cout <<processId<< ": Posledni vygenerovana permutace:\t" << permutation << endl;
@@ -268,6 +273,7 @@ int main(int argc, char** argv) {
         printPermutation(minPermutation, nodeCount);
     }
     cleanUp();  // uklid
+    cout<<processId<<": terminated"<<endl;
     return 0;
 }
 
