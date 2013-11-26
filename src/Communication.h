@@ -110,7 +110,7 @@ void sendBest(){
     memcpy(msg,minPermutation,nodeCount*sizeof(int));
     cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
     MPI_Send(msg, nodeCount+1, MPI_INT, (processId+1)%processNumber, MSG_BEST_RESULT, MPI_COMM_WORLD);
-        cout<<"Process:"<<processId<<" msg send"<<endl;
+    cout<<"Process:"<<processId<<" msg send"<<endl;
     delete[] msg;
 }
 

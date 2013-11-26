@@ -126,7 +126,7 @@ int * PermutationStack::wrap(){
         }
     }
     else{
-        for(int i = endLevel+1;(i<length-1) && !found;i++){
+        for(int i = endLevel+1;(i<length-2) && !found;i++){
             rest=0;
             for(int j=permutation[i]+1;j<endVal;j++){
                 if(!used[j])rest++;
