@@ -59,6 +59,10 @@ int * getWork(){
             }break;
             case MSG_WORK_REQUEST_DENIED:{
                 i++;
+                if(i==processNumber){
+                    cout<<"Process:"<<processId<<" : No one want to share work :-("<<endl;
+                    break;
+                }
                 cout<<"Process:"<<processId<<" msg to:"<<(processId+i)%processNumber<<" tag:"<<MSG_REQUEST_WORK<<endl;
                 MPI_Send(NULL, 0, MPI_INT, (processId+i)%processNumber, MSG_REQUEST_WORK, MPI_COMM_WORLD);
                 cout<<"Process:"<<processId<<" msg send"<<endl;
