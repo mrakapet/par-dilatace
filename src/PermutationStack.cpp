@@ -111,20 +111,36 @@ int * PermutationStack::wrap(){
     int divValue=endVal;
     int * out = NULL;
     bool found = false;
+    int rest=0;
     for(int i=permutation[endLevel]+1;i<endVal;i++){
-        if(!used[i]){
-            endVal=i;
-            found = true;
-            break;
+        if(!used[i])rest++;
+    }
+    if(rest!=0){
+        rest=rest/2;
+        for(int i=permutation[endLevel]+1;i<endVal;i++){
+            if((!used[i]) && (rest--==0)){
+                endVal=i;
+                found = true;
+                break;
+            }
         }
     }
-    for(int i = endLevel+1;(i<length-1) && !found;i++){
-        for(int j = permutation[i]+1;j<length;j++){
-            if(!used[j]){
-                endLevel=i;
-                endVal=j;
-                found=true;
-                break;
+    else{
+        for(int i = endLevel+1;(i<length-1) && !found;i++){
+            rest=0;
+            for(int j=permutation[i]+1;j<endVal;j++){
+                if(!used[j])rest++;
+            }
+            if(rest!=0){
+                rest=rest/2;
+                for(int j = permutation[i]+1;j<length;j++){
+                    if((!used[j]) && (rest--==0)){
+                        endLevel=i;
+                        endVal=j;
+                        found=true;
+                        break;
+                    }
+                }
             }
         }
     }
