@@ -159,6 +159,7 @@ void PermutationStack::unwrap(int * msg){
     endVal=msg[1];
     level=endLevel+1;
     memcpy(permutation,msg+2*sizeof(int),(endLevel+1)*sizeof(int));
+    delete[] msg;
 }
 
 bool PermutationStack::isFull(){

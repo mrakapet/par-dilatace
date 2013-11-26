@@ -101,6 +101,7 @@ void sendWork(int dest){
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_ACCEPTED<<endl;
     MPI_Send(buf, buf[0]+3, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
+    delete[] buf;
 }
 
 void sendBest(){
@@ -110,6 +111,7 @@ void sendBest(){
     cout<<"Process:"<<processId<<" msg to:"<<(processId+1)%processNumber<<" tag:"<<MSG_BEST_RESULT<<endl;
     MPI_Send(msg, nodeCount+1, MPI_INT, (processId+1)%processNumber, MSG_BEST_RESULT, MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
+    delete[] msg;
 }
 
 void recieveBest(int * msg){
@@ -127,6 +129,7 @@ void recieveBest(int * msg){
             finished=true;
         }
     }
+    delete[] msg;
 }
 void checkForMsg(){
     int flag;
@@ -136,7 +139,7 @@ void checkForMsg(){
         MPI_Iprobe ( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status );
         if(!flag)break;
         cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
-        MPI_Recv(buf,status._ucount,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD,&status);
+        MPI_Recv(buf,nodeCount+1,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD,&status);
         cout<<"Process:"<<processId<<" msg recieved"<<endl;
         switch(status.MPI_TAG){
             case MSG_BEST_RESULT:
