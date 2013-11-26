@@ -207,7 +207,7 @@ void generate() {
            }
         }
         if(permutation->isEnd()){ //pokud mi došla práce, skusím si říci o další
-            WrappedPermutation *in = getWork();
+            int *in = getWork();
             if(finished)break;
             permutation->unwrap(in);
         }

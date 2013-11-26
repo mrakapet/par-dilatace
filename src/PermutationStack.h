@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include "Permutation.h"
-#include "WrappedPermutation.h"
 
 using namespace std;
 
@@ -25,8 +24,8 @@ public:
     int getPosX(int x);
     int getLevel();
     int* getPerm(); 
-    WrappedPermutation * wrap();
-    void unwrap(WrappedPermutation * msg);
+    int * wrap();
+    void unwrap(int * msg);
     bool isEnd();
     bool isFull();
     void print(bool eol = true);  

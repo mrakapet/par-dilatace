@@ -107,38 +107,42 @@ int* PermutationStack::getPerm(){
     return out;
 }
 
-WrappedPermutation * PermutationStack::wrap(){
-    int divLevel=-1,divValue=endVal;
-    WrappedPermutation * out = NULL;
+int * PermutationStack::wrap(){
+    int divValue=endVal;
+    int * out = NULL;
+    bool found = false;
     for(int i=permutation[endLevel]+1;i<endVal;i++){
         if(!used[i]){
-            divLevel=endLevel;
             endVal=i;
+            found = true;
             break;
         }
     }
-    for(int i = endLevel+1;(i<length-1) && (divLevel==-1);i++){
+    for(int i = endLevel+1;(i<length-1) && !found;i++){
         for(int j = permutation[i]+1;j<length;j++){
             if(!used[j]){
-                divLevel=i;
                 endLevel=i;
                 endVal=j;
+                found=true;
                 break;
             }
         }
     }
-    if(divLevel!=-1){
-        out = new WrappedPermutation(permutation,divLevel,divValue);
-        out->start[divLevel]=endVal;
+    if(found){
+        out = new int[endLevel+3];
+        out[0]=endLevel;
+        out[1]=divValue;
+        memcpy(out+2*sizeof(int),permutation,endLevel*sizeof(int));
+        out[endLevel+2]=endVal;
     }
     return out;
 }
 
-void PermutationStack::unwrap(WrappedPermutation * msg){
-    this->endLevel=msg->endLevel;
-    this->endVal=msg->endVal;
-    this->level=endLevel+1;
-    memcpy(this->permutation,msg->start,(endLevel+1)*sizeof(int));
+void PermutationStack::unwrap(int * msg){
+    endLevel=msg[0];
+    endVal=msg[1];
+    level=endLevel+1;
+    memcpy(permutation,msg+2*sizeof(int),(endLevel+1)*sizeof(int));
 }
 
 bool PermutationStack::isFull(){

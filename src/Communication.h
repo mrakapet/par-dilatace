@@ -15,7 +15,6 @@
 #include <fstream>
 #include <cstring>
 #include "globals.h"
-#include "WrappedPermutation.h"
 
 using namespace std;
 
@@ -44,7 +43,7 @@ void sendTerminate(){
     cout<<"Process:"<<processId<<" msg send"<<endl;
 }
 
-WrappedPermutation * getWork(){
+int * getWork(){
     MPI_Status status;
     int i=1;
     int * buf=new int[nodeCount+1];
@@ -65,13 +64,7 @@ WrappedPermutation * getWork(){
                 cout<<"Process:"<<processId<<" msg send"<<endl;
             }break;
             case MSG_WORK_REQUEST_ACCEPTED:{
-                int* perm;
-                int size, end;
-                size=buf[0];
-                perm = new int[size+1];
-                end=buf[1];
-                memcpy(perm,buf+2*sizeof(int),(size+1)*sizeof(int));
-                return new WrappedPermutation(perm,size,end);
+                return buf;
             }break;
             case MSG_TERMINATE:{
                 finished=true;
@@ -100,17 +93,13 @@ WrappedPermutation * getWork(){
 }
 
 void sendWork(int dest){
-    WrappedPermutation * msg = permutation->wrap();
-    if(msg==NULL){
+    int * buf= permutation->wrap();
+    if(buf==NULL){
         sendRefuse(dest);
         return;
     }
-    int* buf = new int[msg->endLevel+3];
-    buf[0]=msg->endLevel;
-    buf[1]=msg->endVal;
-    memcpy(buf+2*sizeof(int),msg->start,(msg->endLevel+1)*sizeof(int));
     cout<<"Process:"<<processId<<" msg to:"<<dest<<" tag:"<<MSG_WORK_REQUEST_ACCEPTED<<endl;
-    MPI_Send(buf, msg->endLevel+3, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
+    MPI_Send(buf, buf[0]+3, MPI_INT, dest, MSG_WORK_REQUEST_ACCEPTED, MPI_COMM_WORLD);
         cout<<"Process:"<<processId<<" msg send"<<endl;
 }
 
@@ -147,7 +136,7 @@ void checkForMsg(){
         MPI_Iprobe ( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status );
         if(!flag)break;
         cout<<"Process:"<<processId<<" msg from:"<<status.MPI_SOURCE<<" tag:"<<status.MPI_TAG<<endl;
-        MPI_Recv(buf,status.count,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD,&status);
+        MPI_Recv(buf,status._ucount,MPI_INT,status.MPI_SOURCE,status.MPI_TAG,MPI_COMM_WORLD,&status);
         cout<<"Process:"<<processId<<" msg recieved"<<endl;
         switch(status.MPI_TAG){
             case MSG_BEST_RESULT:
