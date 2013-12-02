@@ -133,7 +133,7 @@ void recieveBest(int * msg){
             finished=true;
         }
     }
-    delete[] msg;
+    //delete[] msg;
 }
 void checkForMsg(){
     int flag;
@@ -155,11 +155,11 @@ void checkForMsg(){
             case MSG_TERMINATE:
                 sendTerminate();
                 finished=true;
-                return;
+                break;
         }
     }
     
-    
+    delete [] buf;
 }
 
 
