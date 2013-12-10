@@ -21,13 +21,15 @@
 #include "PermutationStack.h"
 #include "Visualizator.h"
 #include "globals.h"
-#include "Communication.h"
+
+#ifdef LOCAL
+        #include "CommunicationSerial.h"
+#else
+        #include "Communication.h"
+#endif
 
 #define CHECK 100
 using namespace std;
-//  
-//#include "globals.cpp"
-//#include "Communication.cpp"
 
 void getParameters(int argc, char** argv) {
     if (argc != 2) {
@@ -169,10 +171,10 @@ void printPermutation(int * perm,int size){
 void generate() {
     int permDil, last;
     bool added = false;
-    int checkMsg=0;
+    int checkMsg=0, round=0;
     //permutation->add(0);
-    while(!finished && dilatation > lowerLimit) { // dokud neni zasobnik prazdny        
-        permDil = evaluator->evaluate();
+    while(!finished && dilatation > lowerLimit /*&& !permutation->isEnd()*/) { // dokud neni zasobnik prazdny        
+        permDil = evaluator->evaluate();        
         //cout <<processId<< ": "<< permutation;        
         //cout <<processId<< ": "<< (permDil >= dilatation ? "|" : "") << "\t-> " << permDil << endl;                
         if (permDil < dilatation && permutation->isFull()) {  // kompletní permutace s dilatací lepší než dosud nalezená          
@@ -206,14 +208,19 @@ void generate() {
                }
            }
         }
+                        
         if(permutation->isEnd()){ //pokud mi došla práce, skusím si říci o další
             int *in = getWork();
-            if(finished)break;
+            if(finished) {
+                break;
+            }
             permutation->unwrap(in);
         }
-        if(checkMsg%CHECK==0)checkForMsg();
-        checkMsg++;
-    }
+        if(checkMsg%CHECK==0) { // pokud prisly nejake nove zpravy
+            checkForMsg(); // zpracuj zpravy
+        }        
+        checkMsg++;     // inkrementace pocitadla provedenych cyklu        
+    }    
 }
 
 void testByParts() {
@@ -237,10 +244,12 @@ void testByParts() {
  * 
  */
 int main(int argc, char** argv) {    
+    double startTime, stopTime;
     try {
-        initialize(argc, argv);
-        cout<<processId<<": started"<<endl;
+        initialize(argc, argv);        
+        cout<<processId<<": started"<<endl; 
         barier();
+        startTime = time();
         
         // nacteni dat
         getParameters(argc, argv);                       
@@ -269,13 +278,16 @@ int main(int argc, char** argv) {
         cleanUp(); // uklid
         return 1;
     }   
-
+ 
     barier();
     if(processId==0){    
         cout <<processId<< ":\nDilatace grafu je " << dilatation << ":" << endl;
         printPermutation(minPermutation, nodeCount);
+        stopTime = time();
+        printf("%d: time: %f s.\n", processId, stopTime - startTime);
     }
     cleanUp();  // uklid
+      
     cout<<processId<<": terminated"<<endl;
     return 0;
 }
